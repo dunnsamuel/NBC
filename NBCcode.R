@@ -682,7 +682,6 @@ reg.plots<-function(combo.df,na.rm=TRUE,...){
   cols=c(11,13,15)
   iv.string=names(combo.df)[cols]
   plots=list()
-  #mypath <- file.path(paste("myplot_",names[i],names[j],names[k], ".jpg", sep = ""))
   
   for (i in seq_along(sample_list)){
     for(j in rv.string){

@@ -1,15 +1,21 @@
 ---
-title: "Markdown test"
+title: "NBC Figures"
 author: "Sam Dunn"
-date: "March 27, 2018"
+date: "April 16th 2018"
 output: word_document
+fig_width: 8.5
+fig_height: 6.5 
 ---
 
-```{r setup, include=TRUE}
+
+```{r setup, include=FALSE, cache=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=8.5, fig.height=8.5) 
+
+
 ```
 
-```{r PCA Correlation Table}
+```{r PCA Correlation Table,message=FALSE}
 attach(pca.tab)
 getwd()
 library(knitr)
@@ -17,4 +23,110 @@ kable(pca.tab,digits=4)
 ```
 
 
+```{r fig.height=8.5,fig.width=8.5,message=FALSE}
+attach(substrate.plot.cv)
+substrate.plot.cv
+```
+
+```{r fig.height=8.5,fig.width=8.5,message=FALSE}
+attach(stacked.bar)
+stacked.bar
+```
+
+```{r message=FALSE}
+attach(enz.plots)
+enz.plots
+```
+
+
+```{r message=FALSE}
+attach(raw.plot.chlv)
+raw.plot.chlv
+```
+
+
+```{r PCA, echo=FALSE, fig.height=11, fig.width=8.5, message=FALSE, fig_height=11}
+attach(pca.bw)
+pca.bw
+```
+
+
+```{r Field Data, fig.height=11,fig.width=8.5,message=FALSE}
+usgs.df=read.csv("usgs_niles.csv") #timestamp
+usgs.df$Date=as.character(lapply(strsplit(as.character(usgs.df$timestamp), split=" "), "[", 1))
+usgs.df$time=as.character(lapply(strsplit(as.character(usgs.df$timestamp), split=" "), "[", 2))
+usgs.df$datetime=mdy_hm(usgs.df$timestamp)
+
+water=read.csv("waterchem.wide.csv") #(mdY)
+#water$Date=strptime(as.character(water$Date),"%m/%d/%Y")
+water$Date=mdy(water$Date)
+water$no310=water$no3/10
+water.long=melt(water,id.vars="Date",measure.vars = c("srp","nh4","no310"),variable_name="compound")
+names(water.long$value)<-NULL
+water.sum=summarySE(water.long,measurevar="value",groupvars = c("Date","compound"),na.rm=TRUE)
+
+water.sum$Ions=mapvalues(water.sum$compound,from=c("srp","nh4","no310"),to=c("SRP","NH4","NO3"))
+
+field.data=read.csv("fielddata.csv") #(mdY)
+#field.data$Date=strptime(as.character(field.data$Date),"%m/%d/%Y")
+#field.data$Date=format(field.data$Date,"%m/%d/%y")
+field.data$disdate=as.POSIXct(paste(field.data$Date),format="%m/%d/%Y") #works with USGS data
+
+
+
+
+
+field.plot=ggplot(data=usgs.df,aes(x=datetime,y=Q*.0283168))
+field.plot=field.plot+geom_point()+
+  geom_point(data=field.data, aes(x=disdate,y=Q),shape=8)+
+  geom_line()+
+  ylab(bquote('(Q) '~m^-3~''~s^-1))+
+  xlab(bquote("Date"))+
+  scale_x_datetime(breaks=pretty_breaks(10))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(breaks=seq(0,4,0.5))
+#ggsave("discharge.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
+
+
+td.plot=ggplot(hobo,aes(x=datetime,y=Temp))+geom_point()
+td.plot=td.plot+geom_line()+
+  geom_point(data=par.df,aes(x=date.time,y=microMole.s.m2/4000),color="red")+
+  geom_line(data=par.df, aes(x=date.time,y=microMole.s.m2/4000),color="red")+
+  scale_y_continuous(sec.axis=sec_axis(~.*4000,name=bquote(atop('PAR','(mol photons m'^-2~' s'^-1~')'))))+
+  xlab(bquote("Date"))+
+  ylab(bquote(atop('Water Temperature','(C'*degree~')')))+
+  scale_x_datetime(breaks=pretty_breaks(11))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#ggsave("temp_depth.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
+
+dil.fac=10
+#chem.plot=ggplot(data=water,aes(x=Date,y=srp))+geom_point()+geom_smooth(data=water,aes(x=Date,y=srp),color="black")+
+ # geom_point(data=water,aes(x=Date,y=no3/dil.fac),color="Red")+geom_smooth(data=water,aes(x=Date,y=no3/dil.fac),color="red")+
+#  geom_point(data=water,aes(x=Date,y=nh4),color="Blue")+geom_smooth(data=water,aes(x=Date,y=nh4),color="blue")
+#chem.plot+scale_y_continuous(sec.axis=sec_axis(~.*dil.fac,name="NO3"))+ylab(bquote("SRP, NH4"))
+
+chem.plot=ggplot(data=water.sum,aes(x=Date,y=value,group=Ions,shape=Ions))+geom_point(size=3)+
+  geom_errorbar(data=water.sum, aes(ymin=value-se,ymax=value+se),
+                stat="identity",width=.15,na.rm=T)+
+  geom_line(aes(y=value, linetype=Ions))+
+  scale_y_continuous(sec.axis=sec_axis(~.*dil.fac,name=bquote(atop('NO'[3]~'','('*mu~'g  l'^-1~')'))))+
+  ylab(bquote(atop('SRP, NH'[4]~'','('*mu~'g  l'^-1~')')))+
+  geom_smooth(method="lm",se=F,color="black")+
+  scale_x_date(breaks=pretty_breaks(11))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme(panel.background=element_blank(),
+        legend.title=element_blank(),
+        legend.position=c(0.05,0.85))
+#chem.plot
+#ggarrange(chem.plot,legend="bottom")
+
+ggarrange(td.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank()),
+          chem.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank()),
+          field.plot,nrow=3,align="v", widths=c(1,1,1))
+#grid.draw(rbind(ggplotGrob(td.plot),ggplotGrob(field.plot),size="last"))
+#ggsave("Qtemppar.jpeg",device="jpeg",width=6.5,height=6.5, units="in")
+```
+
+####Paste this into console to render document
+rmarkdown::render("NBC figures.Rmd")
 
