@@ -1,0 +1,342 @@
+$`08/15/17`
+$`08/15/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                    Sample  Residuals
+Sum of Squares  0.06243881 0.04740914
+Deg. of Freedom          4         10
+
+Residual standard error: 0.06885429
+Estimated effects may be unbalanced
+
+$`08/15/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                        diff        lwr           upr     p adj
+Soft PE-PVC      -0.08278084 -0.2678032  0.1022414811 0.6001150
+Sheet PE-PVC     -0.04491141 -0.2299337  0.1401109091 0.9251099
+PS-PVC           -0.12813362 -0.3131559  0.0568886937 0.2281269
+Tile-PVC         -0.18585154 -0.3708739 -0.0008292229 0.0488682
+Sheet PE-Soft PE  0.03786943 -0.1471529  0.2228917461 0.9578256
+PS-Soft PE       -0.04535279 -0.2303751  0.1396695307 0.9226841
+Tile-Soft PE     -0.10307070 -0.2880930  0.0819516141 0.4074909
+PS-Sheet PE      -0.08322222 -0.2682445  0.1018001027 0.5956804
+Tile-Sheet PE    -0.14094013 -0.3259625  0.0440821861 0.1647417
+Tile-PS          -0.05771792 -0.2427402  0.1273044014 0.8377168
+
+
+
+$`08/18/17`
+$`08/18/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                    Sample  Residuals
+Sum of Squares  0.05042107 0.03568391
+Deg. of Freedom          4         10
+
+Residual standard error: 0.05973601
+Estimated effects may be unbalanced
+
+$`08/18/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                          diff        lwr        upr     p adj
+Soft PE-PVC      -0.0321284060 -0.1926485 0.12839166 0.9609723
+Sheet PE-PVC     -0.1270286097 -0.2875487 0.03349146 0.1427358
+PS-PVC           -0.1354415667 -0.2959616 0.02507850 0.1102362
+Tile-PVC         -0.1347968540 -0.2953169 0.02572322 0.1124603
+Sheet PE-Soft PE -0.0949002037 -0.2554203 0.06561987 0.3552243
+PS-Soft PE       -0.1033131607 -0.2638332 0.05720691 0.2841701
+Tile-Soft PE     -0.1026684480 -0.2631885 0.05785162 0.2892103
+PS-Sheet PE      -0.0084129570 -0.1689330 0.15210711 0.9997640
+Tile-Sheet PE    -0.0077682443 -0.1682883 0.15275182 0.9998279
+Tile-PS           0.0006447127 -0.1598754 0.16116478 1.0000000
+
+
+
+$`08/22/17`
+$`08/22/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.1834557 0.2368854
+Deg. of Freedom         4        10
+
+Residual standard error: 0.1539108
+Estimated effects may be unbalanced
+
+$`08/22/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                        diff        lwr       upr     p adj
+Soft PE-PVC      -0.26057470 -0.6741573 0.1530079 0.3014732
+Sheet PE-PVC     -0.31824489 -0.7318275 0.0953377 0.1587169
+PS-PVC           -0.14635696 -0.5599395 0.2672256 0.7702808
+Tile-PVC         -0.23157856 -0.6451611 0.1820040 0.4029376
+Sheet PE-Soft PE -0.05767019 -0.4712528 0.3559124 0.9894607
+PS-Soft PE        0.11421774 -0.2993648 0.5278003 0.8871605
+Tile-Soft PE      0.02899614 -0.3845864 0.4425787 0.9992556
+PS-Sheet PE       0.17188793 -0.2416947 0.5854705 0.6593198
+Tile-Sheet PE     0.08666633 -0.3269163 0.5002489 0.9542603
+Tile-PS          -0.08522160 -0.4988042 0.3283610 0.9568332
+
+
+
+$`08/25/17`
+$`08/25/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.4335041 0.5033338
+Deg. of Freedom         4         8
+
+Residual standard error: 0.2508321
+Estimated effects may be unbalanced
+2 observations deleted due to missingness
+
+$`08/25/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                       diff        lwr       upr     p adj
+Soft PE-PVC      -0.1133785 -1.1139982 0.8872411 0.9940148
+Sheet PE-PVC     -0.4214733 -1.4220929 0.5791463 0.6139003
+PS-PVC           -0.5567251 -1.5573448 0.4438945 0.3780663
+Tile-PVC         -0.2829310 -1.2835507 0.7176886 0.8584602
+Sheet PE-Soft PE -0.3080948 -1.0156397 0.3994501 0.5870221
+PS-Soft PE       -0.4433466 -1.1508915 0.2641983 0.2821047
+Tile-Soft PE     -0.1695525 -0.8770975 0.5379924 0.9146085
+PS-Sheet PE      -0.1352518 -0.8427968 0.5722931 0.9596944
+Tile-Sheet PE     0.1385423 -0.5690027 0.8460872 0.9562238
+Tile-PS           0.2737941 -0.4337508 0.9813390 0.6788061
+
+
+
+$`08/29/17`
+$`08/29/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.2114245 0.4998425
+Deg. of Freedom         4        10
+
+Residual standard error: 0.2235716
+Estimated effects may be unbalanced
+
+$`08/29/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                         diff        lwr       upr     p adj
+Soft PE-PVC      -0.275190917 -0.8759629 0.3255811 0.5803468
+Sheet PE-PVC     -0.312834031 -0.9136060 0.2879380 0.4678375
+PS-PVC           -0.277501764 -0.8782737 0.3232702 0.5732346
+Tile-PVC         -0.310963361 -0.9117353 0.2898086 0.4732057
+Sheet PE-Soft PE -0.037643114 -0.6384151 0.5631289 0.9995218
+PS-Soft PE       -0.002310847 -0.6030828 0.5984611 1.0000000
+Tile-Soft PE     -0.035772444 -0.6365444 0.5649995 0.9996090
+PS-Sheet PE       0.035332267 -0.5654397 0.6361043 0.9996276
+Tile-Sheet PE     0.001870671 -0.5989013 0.6026427 1.0000000
+Tile-PS          -0.033461597 -0.6342336 0.5673104 0.9996997
+
+
+
+$`09/01/17`
+$`09/01/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.3364238 0.2903464
+Deg. of Freedom         4        10
+
+Residual standard error: 0.1703955
+Estimated effects may be unbalanced
+
+$`09/01/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                        diff        lwr        upr     p adj
+Soft PE-PVC      -0.16112093 -0.6190005 0.29675867 0.7736709
+Sheet PE-PVC      0.04666249 -0.4112171 0.50454209 0.9968008
+PS-PVC           -0.36244001 -0.8203196 0.09543960 0.1425930
+Tile-PVC         -0.01025680 -0.4681364 0.44762280 0.9999920
+Sheet PE-Soft PE  0.20778341 -0.2500962 0.66566302 0.5882548
+PS-Soft PE       -0.20131908 -0.6591987 0.25656053 0.6145106
+Tile-Soft PE      0.15086413 -0.3070155 0.60874373 0.8105996
+PS-Sheet PE      -0.40910249 -0.8669821 0.04877711 0.0859288
+Tile-Sheet PE    -0.05691929 -0.5147989 0.40096031 0.9931596
+Tile-PS           0.35218320 -0.1056964 0.81006281 0.1589638
+
+
+
+$`09/05/17`
+$`09/05/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                    Sample  Residuals
+Sum of Squares  0.04572483 0.24073978
+Deg. of Freedom          4         10
+
+Residual standard error: 0.1551579
+Estimated effects may be unbalanced
+
+$`09/05/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                        diff        lwr       upr     p adj
+Soft PE-PVC      -0.08353229 -0.5004660 0.3334014 0.9608384
+Sheet PE-PVC     -0.10526600 -0.5221997 0.3116677 0.9149272
+PS-PVC           -0.05058937 -0.4675231 0.3663444 0.9937599
+Tile-PVC         -0.16562005 -0.5825538 0.2513137 0.6932230
+Sheet PE-Soft PE -0.02173371 -0.4386674 0.3952000 0.9997690
+PS-Soft PE        0.03294291 -0.3839908 0.4498766 0.9988103
+Tile-Soft PE     -0.08208777 -0.4990215 0.3348460 0.9631502
+PS-Sheet PE       0.05467663 -0.3622571 0.4716104 0.9916282
+Tile-Sheet PE    -0.06035405 -0.4772878 0.3565797 0.9878835
+Tile-PS          -0.11503068 -0.5319644 0.3019030 0.8875001
+
+
+
+$`09/08/17`
+$`09/08/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.8021717 0.2355197
+Deg. of Freedom         4         7
+
+Residual standard error: 0.1834276
+Estimated effects may be unbalanced
+3 observations deleted due to missingness
+
+$`09/08/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                        diff        lwr         upr     p adj
+Soft PE-PVC       0.15907085 -0.4972353  0.81537698 0.9002783
+Sheet PE-PVC     -0.03121583 -0.6303386  0.56790695 0.9996570
+PS-PVC           -0.48755387 -1.0866767  0.11156892 0.1156913
+Tile-PVC         -0.46040628 -1.1167124  0.19589985 0.1919186
+Sheet PE-Soft PE -0.19028669 -0.7894095  0.40883610 0.7843219
+PS-Soft PE       -0.64662472 -1.2457475 -0.04750193 0.0352917
+Tile-Soft PE     -0.61947713 -1.2757833  0.03682900 0.0642341
+PS-Sheet PE      -0.45633803 -0.9922097  0.07953368 0.0974570
+Tile-Sheet PE    -0.42919045 -1.0283132  0.16993234 0.1796032
+Tile-PS           0.02714759 -0.5719752  0.62627038 0.9998026
+
+
+
+$`09/12/17`
+$`09/12/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.1146631 0.1373026
+Deg. of Freedom         4        10
+
+Residual standard error: 0.1171762
+Estimated effects may be unbalanced
+
+$`09/12/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                       diff        lwr       upr     p adj
+Soft PE-PVC      0.01328325 -0.3015877 0.3281542 0.9999002
+Sheet PE-PVC     0.15647543 -0.1583955 0.4713463 0.5094996
+PS-PVC           0.17932999 -0.1355409 0.4942009 0.3878827
+Tile-PVC         0.20906351 -0.1058074 0.5239344 0.2596634
+Sheet PE-Soft PE 0.14319218 -0.1716787 0.4580631 0.5864561
+PS-Soft PE       0.16604673 -0.1488242 0.4809177 0.4565077
+Tile-Soft PE     0.19578026 -0.1190907 0.5106512 0.3123849
+PS-Sheet PE      0.02285455 -0.2920164 0.3377255 0.9991469
+Tile-Sheet PE    0.05258808 -0.2622828 0.3674590 0.9795053
+Tile-PS          0.02973352 -0.2851374 0.3446044 0.9976174
+
+
+
+$`09/15/17`
+$`09/15/17`$part1
+Call:
+   aov(formula = GPP ~ Sample)
+
+Terms:
+                   Sample Residuals
+Sum of Squares  0.2541829 0.3585513
+Deg. of Freedom         4        10
+
+Residual standard error: 0.1893545
+Estimated effects may be unbalanced
+
+$`09/15/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = GPP ~ Sample)
+
+$Sample
+                        diff        lwr       upr     p adj
+Soft PE-PVC       0.15131404 -0.3575113 0.6601394 0.8588707
+Sheet PE-PVC      0.22265297 -0.2861724 0.7314783 0.6184133
+PS-PVC           -0.12976739 -0.6385928 0.3790580 0.9121338
+Tile-PVC         -0.05256207 -0.5613874 0.4562633 0.9966292
+Sheet PE-Soft PE  0.07133893 -0.4374864 0.5801643 0.9892438
+PS-Soft PE       -0.28108143 -0.7899068 0.2277439 0.4149701
+Tile-Soft PE     -0.20387611 -0.7127015 0.3049493 0.6868999
+PS-Sheet PE      -0.35242036 -0.8612457 0.1564050 0.2280380
+Tile-Sheet PE    -0.27521503 -0.7840404 0.2336103 0.4338111
+Tile-PS           0.07720533 -0.4316200 0.5860307 0.9855762
+
+
+

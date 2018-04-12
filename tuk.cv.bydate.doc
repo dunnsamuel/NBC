@@ -1,0 +1,336 @@
+$`08/15/17`
+$`08/15/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                   Substrate    Residuals
+Sum of Squares  0.0000427746 0.0001191515
+Deg. of Freedom            4           10
+
+Residual standard error: 0.003451833
+Estimated effects may be unbalanced
+
+$`08/15/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                          diff          lwr         upr     p adj
+Soft PE-PVC      -0.0006083333 -0.009883953 0.008667286 0.9994275
+Sheet PE-PVC      0.0000250000 -0.009250620 0.009300620 1.0000000
+PS-PVC            0.0012916667 -0.007983953 0.010567286 0.9895133
+Tile-PVC          0.0041052726 -0.005170347 0.013380892 0.6090896
+Sheet PE-Soft PE  0.0006333333 -0.008642286 0.009908953 0.9993291
+PS-Soft PE        0.0019000000 -0.007375620 0.011175620 0.9577092
+Tile-Soft PE      0.0047136060 -0.004562014 0.013989226 0.4896421
+PS-Sheet PE       0.0012666667 -0.008008953 0.010542286 0.9902529
+Tile-Sheet PE     0.0040802726 -0.005195347 0.013355892 0.6141095
+Tile-PS           0.0028136060 -0.006462014 0.012089226 0.8503878
+
+
+
+$`08/18/17`
+$`08/18/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                   Substrate    Residuals
+Sum of Squares  5.634885e-05 1.267480e-04
+Deg. of Freedom            4           10
+
+Residual standard error: 0.003560169
+Estimated effects may be unbalanced
+
+$`08/18/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                         diff          lwr         upr     p adj
+Soft PE-PVC      -0.000618750 -0.010185483 0.008947983 0.9994581
+Sheet PE-PVC      0.000031250 -0.009535483 0.009597983 1.0000000
+PS-PVC            0.002295833 -0.007270900 0.011862567 0.9278555
+Tile-PVC          0.004589095 -0.004977639 0.014155828 0.5406103
+Sheet PE-Soft PE  0.000650000 -0.008916733 0.010216733 0.9993420
+PS-Soft PE        0.002914583 -0.006652150 0.012481317 0.8484699
+Tile-Soft PE      0.005207845 -0.004358889 0.014774578 0.4280632
+PS-Sheet PE       0.002264583 -0.007302150 0.011831317 0.9310354
+Tile-Sheet PE     0.004557845 -0.005008889 0.014124578 0.5465652
+Tile-PS           0.002293261 -0.007273472 0.011859995 0.9281204
+
+
+
+$`08/22/17`
+$`08/22/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                   Substrate    Residuals
+Sum of Squares  9.400508e-05 9.956613e-05
+Deg. of Freedom            4           10
+
+Residual standard error: 0.00315541
+Estimated effects may be unbalanced
+
+$`08/22/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                          diff          lwr         upr     p adj
+Soft PE-PVC      -0.0034000000 -0.011879083 0.005079083 0.6863361
+Sheet PE-PVC     -0.0061604167 -0.014639500 0.002318667 0.1947709
+PS-PVC           -0.0004645833 -0.008943667 0.008014500 0.9997186
+Tile-PVC         -0.0054074588 -0.013886542 0.003071625 0.2915645
+Sheet PE-Soft PE -0.0027604167 -0.011239500 0.005718667 0.8168224
+PS-Soft PE        0.0029354167 -0.005543667 0.011414500 0.7832679
+Tile-Soft PE     -0.0020074588 -0.010486542 0.006471625 0.9309971
+PS-Sheet PE       0.0056958333 -0.002783250 0.014174917 0.2507401
+Tile-Sheet PE     0.0007529578 -0.007726126 0.009232041 0.9981233
+Tile-PS          -0.0049428755 -0.013421959 0.003536208 0.3674462
+
+
+
+$`08/25/17`
+$`08/25/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                  Substrate   Residuals
+Sum of Squares  0.004320801 0.003218055
+Deg. of Freedom           4          10
+
+Residual standard error: 0.01793894
+Estimated effects may be unbalanced
+
+$`08/25/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                        diff          lwr        upr     p adj
+Soft PE-PVC      -0.01680000 -0.065004748 0.03140475 0.7793742
+Sheet PE-PVC     -0.02315625 -0.071360998 0.02504850 0.5393734
+PS-PVC            0.01097708 -0.037227664 0.05918183 0.9393630
+Tile-PVC          0.02257271 -0.025632037 0.07077746 0.5615162
+Sheet PE-Soft PE -0.00635625 -0.054560998 0.04184850 0.9914539
+PS-Soft PE        0.02777708 -0.020427664 0.07598183 0.3775927
+Tile-Soft PE      0.03937271 -0.008832037 0.08757746 0.1260038
+PS-Sheet PE       0.03413333 -0.014071414 0.08233808 0.2123158
+Tile-Sheet PE     0.04572896 -0.002475787 0.09393371 0.0649717
+Tile-PS           0.01159563 -0.036609120 0.05980038 0.9272935
+
+
+
+$`08/29/17`
+$`08/29/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                  Substrate   Residuals
+Sum of Squares  0.026745057 0.007680243
+Deg. of Freedom           4           9
+
+Residual standard error: 0.02921233
+Estimated effects may be unbalanced
+1 observation deleted due to missingness
+
+$`08/29/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                        diff          lwr         upr     p adj
+Soft PE-PVC      -0.04609583 -0.126299280  0.03410761 0.3667175
+Sheet PE-PVC     -0.06711667 -0.147320114  0.01308678 0.1112924
+PS-PVC            0.02441667 -0.055786780  0.10462011 0.8385960
+Tile-PVC         -0.10223619 -0.191906368 -0.01256601 0.0251989
+Sheet PE-Soft PE -0.02102083 -0.101224280  0.05918261 0.8968507
+PS-Soft PE        0.07051250 -0.009690947  0.15071595 0.0905437
+Tile-Soft PE     -0.05614035 -0.145810535  0.03352982 0.2957230
+PS-Sheet PE       0.09153333  0.011329886  0.17173678 0.0250615
+Tile-Sheet PE    -0.03511952 -0.124789701  0.05455066 0.6886523
+Tile-PS          -0.12665285 -0.216323035 -0.03698268 0.0070011
+
+
+
+$`09/01/17`
+$`09/01/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                  Substrate   Residuals
+Sum of Squares  0.005245183 0.012570316
+Deg. of Freedom           4          10
+
+Residual standard error: 0.03545464
+Estimated effects may be unbalanced
+
+$`09/01/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                          diff         lwr        upr     p adj
+Soft PE-PVC      -0.0283687500 -0.12364095 0.06690345 0.8583275
+Sheet PE-PVC      0.0299229167 -0.06534928 0.12519512 0.8345201
+PS-PVC           -0.0008145833 -0.09608678 0.09445762 0.9999998
+Tile-PVC         -0.0075368827 -0.10280908 0.08773532 0.9988046
+Sheet PE-Soft PE  0.0582916667 -0.03698053 0.15356387 0.3258826
+PS-Soft PE        0.0275541667 -0.06771803 0.12282637 0.8701238
+Tile-Soft PE      0.0208318673 -0.07444033 0.11610407 0.9471130
+PS-Sheet PE      -0.0307375000 -0.12600970 0.06453470 0.8214067
+Tile-Sheet PE    -0.0374597994 -0.13273200 0.05781240 0.7006199
+Tile-PS          -0.0067222994 -0.10199450 0.08854990 0.9992367
+
+
+
+$`09/05/17`
+$`09/05/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                 Substrate  Residuals
+Sum of Squares  0.01202751 0.01250530
+Deg. of Freedom          4          9
+
+Residual standard error: 0.0372757
+Estimated effects may be unbalanced
+1 observation deleted due to missingness
+
+$`09/05/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                          diff         lwr        upr     p adj
+Soft PE-PVC      -0.0150020833 -0.11734378 0.08733961 0.9860626
+Sheet PE-PVC     -0.0147791667 -0.11712086 0.08756253 0.9868124
+PS-PVC            0.0490395833 -0.05330211 0.15138128 0.5258028
+Tile-PVC          0.0516511574 -0.06277034 0.16607265 0.5768247
+Sheet PE-Soft PE  0.0002229167 -0.10211878 0.10256461 1.0000000
+PS-Soft PE        0.0640416667 -0.03830003 0.16638336 0.2961221
+Tile-Soft PE      0.0666532407 -0.04776825 0.18107474 0.3552408
+PS-Sheet PE       0.0638187500 -0.03852295 0.16616045 0.2989117
+Tile-Sheet PE     0.0664303241 -0.04799117 0.18085182 0.3580886
+Tile-PS           0.0026115741 -0.11180992 0.11703307 0.9999904
+
+
+
+$`09/08/17`
+$`09/08/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                  Substrate   Residuals
+Sum of Squares  0.001428152 0.029525924
+Deg. of Freedom           2           3
+
+Residual standard error: 0.09920673
+Estimated effects may be unbalanced
+9 observations deleted due to missingness
+
+$`09/08/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                        diff        lwr       upr     p adj
+Sheet PE-Soft PE -0.03687500 -0.4514364 0.3776864 0.9284237
+Tile-Soft PE     -0.02559919 -0.4401606 0.3889622 0.9643900
+Tile-Sheet PE     0.01127581 -0.4032856 0.4258372 0.9929200
+
+
+
+$`09/12/17`
+$`09/12/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                  Substrate   Residuals
+Sum of Squares  0.000408419 0.005436836
+Deg. of Freedom           4          10
+
+Residual standard error: 0.02331702
+Estimated effects may be unbalanced
+
+$`09/12/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                         diff         lwr        upr     p adj
+Soft PE-PVC      -0.006429167 -0.06908568 0.05622735 0.9967153
+Sheet PE-PVC     -0.007229167 -0.06988568 0.05542735 0.9948488
+PS-PVC            0.005077083 -0.05757943 0.06773360 0.9986869
+Tile-PVC         -0.008776440 -0.07143295 0.05388007 0.9892812
+Sheet PE-Soft PE -0.000800000 -0.06345651 0.06185651 0.9999992
+PS-Soft PE        0.011506250 -0.05115026 0.07416276 0.9711757
+Tile-Soft PE     -0.002347274 -0.06500379 0.06030924 0.9999378
+PS-Sheet PE       0.012306250 -0.05035026 0.07496276 0.9634611
+Tile-Sheet PE    -0.001547274 -0.06420379 0.06110924 0.9999882
+Tile-PS          -0.013853524 -0.07651004 0.04880299 0.9450836
+
+
+
+$`09/15/17`
+$`09/15/17`$part1
+Call:
+   aov(formula = OD_cm ~ Substrate)
+
+Terms:
+                   Substrate    Residuals
+Sum of Squares  0.0001813383 0.0001737641
+Deg. of Freedom            4           10
+
+Residual standard error: 0.004168502
+Estimated effects may be unbalanced
+
+$`09/15/17`$part2
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = OD_cm ~ Substrate)
+
+$Substrate
+                          diff          lwr         upr     p adj
+Soft PE-PVC      -0.0017208333 -0.012922254 0.009480587 0.9849012
+Sheet PE-PVC     -0.0012145833 -0.012416004 0.009986837 0.9959385
+PS-PVC            0.0057291667 -0.005472254 0.016930587 0.4838712
+Tile-PVC          0.0063039609 -0.004897460 0.017505381 0.3984339
+Sheet PE-Soft PE  0.0005062500 -0.010695171 0.011707671 0.9998688
+PS-Soft PE        0.0074500000 -0.003751421 0.018651421 0.2583546
+Tile-Soft PE      0.0080247942 -0.003176626 0.019226215 0.2042476
+PS-Sheet PE       0.0069437500 -0.004257671 0.018145171 0.3149077
+Tile-Sheet PE     0.0075185442 -0.003682876 0.018719965 0.2513483
+Tile-PS           0.0005747942 -0.010626626 0.011776215 0.9997829
+
+
+

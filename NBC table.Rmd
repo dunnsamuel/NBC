@@ -1,0 +1,26 @@
+---
+title: "NBC Tables"
+author: "Sam Dunn"
+date: "March 27, 2018"
+output: word_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+***
+```{r PCA Correlation Table}
+library(knitr)
+kable(pca.tab,digits=3)
+```
+
+***
+
+```{r}
+library(knitr)
+
+```
+
+####Paste this into console to render document
+rmarkdown::render("NBC table.Rmd")
+

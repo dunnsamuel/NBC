@@ -1,0 +1,512 @@
+pc.df$Sample=factor(pc.df$Sample,levels=c("H","So","Sh","F","T"),labels=c("PVC","Soft PE","Sheet PE","PS","Tile"))
+####integrate PAR####
+library(plyr)
+int_par=aggregate(par.df$microMole.s.m2,by=list((substr(par.df$Date,1,385))),mean)
+int_par=rename(int_par,c("Group.1"="Date.Sampled","x"="Summed.PAR"))
+###Time Series rmANOVAS####
+####two-way anovas, no error terms####
+require(nlme)
+require(multcomp)
+require(knitr)
+####Resp####
+resp.aov=aov(Resp~(Sample*Date.Sampled),metabolism.data)
+resp.sum=summary(resp.aov)
+tuk.resp.sample=TukeyHSD(resp.aov,"Sample")
+tuk.resp.date=TukeyHSD(resp.aov,"Date.Sampled")
+par(mfrow=c(2,2))
+plot(resp.aov)#> in residual plot, falls of 0 9due to negative values)45,1110,1218 are outliers to be removed
+resp.results=list(resp.sum,tuk.resp.sample,tuk.resp.date)
+capture.output(resp.results,file="resp.twoway.doc")
+####GPP####
+GPP.aov=aov(GPP~Sample*Date.Sampled,metabolism.data)
+gpp.sum=summary(GPP.aov)
+tuk.gpp.sample=TukeyHSD(GPP.aov,"Sample")
+tuk.gpp.date=TukeyHSD(GPP.aov,"Date.Sampled")
+par(mfrow=c(2,2))
+plot(GPP.aov)#< in residual plot, centered on zero
+gpp.results=list(gpp.sum,tuk.gpp.sample,tuk.gpp.date)
+capture.output(gpp.results,file="gpp.twoway.doc")
+####NEP####
+NEP.aov=aov(NEP~Sample*Date.Sampled,metabolism.data)
+nep.sum=summary(NEP.aov)
+tuk.nep.sample=TukeyHSD(NEP.aov,"Sample")
+tuk.nep.date=TukeyHSD(NEP.aov,"Date.Sampled")
+par(mfrow=c(2,2))
+plot(NEP.aov) #no problem
+nep.results=list(nep.sum,tuk.nep.sample,tuk.nep.date)
+capture.output(nep.results,file="nep.twoway.doc")
+####2-way RM anova via LME model approach#####
+library(pander)
+library(xtable)
+require(XLConnect)
+panderOptions('digits',4)
+panderOptions('round',4)
+panderOptions('keep.trailing.zeros',TRUE)
+#Resp
+lme.resp=anova(lme(Resp~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=metabolism.data))
+lme.resp
+summary(lme.resp)
+#summary(lme.resp)
+#GPP
+lme.gpp=anova(lme(GPP~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=metabolism.data))
+lme.gpp
+#NEP
+lme.nep=anova(lme(NEP~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=metabolism.data))
+lme.nep
+#BG
+lme.bg=anova(lme(BGT2~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=eea.df))
+lme.bg
+#NAG
+lme.nag=anova(lme(NAGT2~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=eea.df))
+lme.nag
+#P
+lme.p=anova(lme(PT2~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=eea.df))
+lme.p
+#Chl
+lme.chl=anova(lme(chl_abs~Date.Sampled*Sample,random=list(id=pdBlocked(list(~1,pdIdent(~Sample-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=chl.data))
+lme.chl
+#CV
+require(lme4)
+cv.data.drop=droplevels(cv.data[-which(cv.data$Date.Sampled=='08/15/17'),])
+lme.cv=anova(lmer(OD_cm~Date.Sampled*Substrate+(Date.Sampled|Substrate),na.action=na.omit,data=cv.data.drop))
+lme.cv
+#model fails to converge, basically there is a date effect but no effect of sample
+lme.cv=anova(lm(OD_cm~Date.Sampled*Substrate,random=list(id=pdBlocked(list(~1,pdIdent(~Substrate-1),pdIdent(~Date.Sampled-1)))),method="ML",na.action=na.omit,data=cv.data))
+lme.cv
+cv.anova=aov(data=cv.data, OD_cm~Date.Sampled)
+TukeyHSD(cv.anova)
+TUKEY.cv=TukeyHSD(cv.anova,conf.level=.95,'Date.Sampled',na.rm=T)
+generate_label_df<-function(TUKEY.cv,Date.Sampled){
+# Extract labels and factor levels from Tukey post-hoc
+Tukey.levels <- TUKEY.cv[[Date.Sampled]][,4]
+Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+#I need to put the labels in the same order as in the boxplot :
+Tukey.labels$treatment=rownames(Tukey.labels)
+Tukey.labels=Tukey.labels[order(Tukey.labels$treatment) , ]
+return(Tukey.labels)
+}
+LABELS.cv=generate_label_df(TUKEY.cv,"Date.Sampled")
+writeWorksheetToFile("lmeoutput.xlsx",
+data=list(lme.resp,lme.gpp,lme.nep,lme.bg,lme.nag,lme.p,lme.chl,lme.cv),
+sheet=c("resp","gpp","nep","bg","nag","p","chl","cv"),
+header=T,clearSheets = T,rownames="var")
+###one way anovas by factor level Time####
+r.o=lapply(split(x=metabolism.data,f=metabolism.data$Date.Sampled),aov,formula=Resp~Sample)
+r.o.sum=lapply(r.o,summary)
+g.o=lapply(split(x=metabolism.data,f=metabolism.data$Date.Sampled),aov,formula=GPP~Sample)
+g.o.sum=lapply(g.o,summary)
+n.o=lapply(split(x=metabolism.data,f=metabolism.data$Date.Sampled),aov,formula=NEP~Sample)
+n.o.sum=lapply(n.o,summary)
+oneway.time=list(r.o.sum,g.o.sum,n.o.sum)
+capture.output(oneway.time,file="oneway.time.doc")
+bt.o=lapply(split(x=eea.df,f=eea.df$Date.Sampled),aov,formula=BGT2~Sample)
+bt.o.sum=lapply(bt.o,summary) #p correction a=0.005, non sig with correction a
+####Tukey for loop, TUKEY HSD on date by date basis####
+require(multcomp)
+metabolism.data$Date.Sampled=as.factor(metabolism.data$Date.Sampled)
+####Resp####
+dates.resp=lapply(levels(metabolism.data$Date.Sampled), function(i){
+dat=metabolism.data[metabolism.data$Date.Sampled==i,] #subset for date i
+part1<-with(dat, aov(Resp~Sample))
+print(part1)
+list(
+part1=part1,
+part2=TukeyHSD(x=part1,which="Sample", conf.level=0.95)
+)
+})
+names(dates.resp)<-levels(metabolism.data$Date.Sampled)
+dates.resp
+capture.output(dates.resp,file="tuk.resp.bydate.doc")
+####NEP####
+dates.nep=lapply(levels(metabolism.data$Date.Sampled), function(i){
+dat=metabolism.data[metabolism.data$Date.Sampled==i,] #subset for date i
+part1<-with(dat, aov(NEP~Sample))
+print(part1)
+list(
+part1=part1,
+part2=TukeyHSD(x=part1,which="Sample", conf.level=0.95)
+)
+})
+names(dates.nep)<-levels(metabolism.data$Date.Sampled)
+dates.nep
+capture.output(dates.nep,file="tuk.nep.bydate.doc")
+####GPP####
+dates.gpp=lapply(levels(metabolism.data$Date.Sampled), function(i){
+dat=metabolism.data[metabolism.data$Date.Sampled==i,] #subset for date i
+part1<-with(dat, aov(GPP~Sample))
+print(part1)
+list(
+part1=part1,
+part2=TukeyHSD(x=part1,which="Sample", conf.level=0.95)
+)
+})
+names(dates.gpp)<-levels(metabolism.data$Date.Sampled)
+dates.gpp
+capture.output(dates.gpp,file="tuk.gpp.bydate.doc")
+eea.df$Date.Sampled=as.factor(eea.df$Date.Sampled)
+###BG####
+dates.bg=lapply(levels(eea.df$Date.Sampled), function(i){
+dat=eea.df[eea.df$Date.Sampled==i,] #subset for date i
+part1<-with(dat, aov(BGT2~Sample))
+print(summary(part1))
+list(
+part1=part1,
+part2=TukeyHSD(x=part1,which="Sample", conf.level=0.95)
+)
+})
+names(dates.bg)<-levels(eea.df$Date.Sampled)
+dates.bg
+capture.output(dates.bg,file="tuk.bg.bydate.doc")
+cv.data$Date.Sampled=as.factor(cv.data$Date.Sampled)
+###CV####
+dates.cv=lapply(levels(cv.data$Date.Sampled), function(i){
+dat=cv.data[cv.data$Date.Sampled==i,] #subset for date i
+part1<-with(dat, aov(OD_cm~Substrate))
+print(summary(part1))
+list(
+part1=part1,
+part2=TukeyHSD(x=part1,which="Substrate", conf.level=0.95)
+)
+})
+names(dates.cv)<-levels(cv.data$Date.Sampled)
+dates.cv
+capture.output(dates.cv,file="tuk.cv.bydate.doc")
+####metabolism first cut####
+library(ggplot2)
+library(gridExtra)
+tabletheme <- gridExtra::ttheme_default(
+core = list(fg_params=list(cex = 0.5)),
+colhead = list(fg_params=list(cex = .5)),
+rowhead = list(fg_params=list(cex = .5)))
+library(pander)
+panderOptions('digits',4)
+panderOptions('round',4)
+panderOptions('keep.trailing.zeros',TRUE)
+raw.plot.g=ggplot(data=metabolism.data,aes(x=time,y=GPP,color=Sample,group=Sample))+geom_point()
+raw.plot.g+geom_smooth(inherit.aes=TRUE)+
+theme(panel.background=element_blank())+
+ylab(bquote('GPP (mg'~cm^-2~h^-1~')'))+xlab("Days of Incubation")+
+theme(axis.line.x = element_line(color="black"),axis.line.y = element_line(color="black"))+
+annotation_custom(tableGrob(round(as.matrix(lme.gpp),digits=4),theme=tabletheme),xmin=0,xmax=20,ymin=0.75)
+#ggsave("GPP.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+raw.plot.r=ggplot(data=metabolism.data,aes(x=time,y=Resp,color=Sample,group=Sample))+geom_point()
+raw.plot.r+geom_smooth(inherit.aes=TRUE)+
+theme(panel.background=element_blank())+
+ylab(bquote('Respiration ('*mu~'g'~cm^-2~h^-1~')'))+xlab("Day of Incubation")+
+theme(axis.line.x = element_line(color="black"),axis.line.y = element_line(color="black"))+
+annotation_custom(tableGrob(round(as.matrix(lme.resp),digits=4),theme=tabletheme),xmin=0,xmax=20,ymax=-0.8)
+#ggsave("Resp.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+raw.plot.n=ggplot(data=metabolism.data,aes(x=time,y=NEP,group=Sample,color=Sample))+geom_point()
+raw.plot.n+geom_smooth(inherit.aes=TRUE)+
+theme(panel.background=element_blank())+
+geom_hline(yintercept=0)+
+ylab(bquote('NEP ('*mu~'g'~cm^-2~h^-1~')'))+xlab("Day of Incubation")+
+theme(axis.line.x = element_line(color="black"),axis.line.y = element_line(color="black"))+
+annotation_custom(tableGrob(round(as.matrix(lme.nep),digits=4),theme=tabletheme),xmin=20,xmax=30,ymax=-0.6)
+#ggsave("NEP.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+####crystal violet first cut####
+library(ggplot2)
+cv.data=na.omit(cv.data)
+cv.sum=summarySE(cv.data,measurevar="OD_cm",groupvars=c("time","Substrate"))
+substrate.plot.cv=ggplot(cv.sum,aes(time,group=Substrate,na.rm=T))+
+geom_point(data=cv.sum,aes(y=OD_cm, fill=Substrate),stat="identity",color="black",size=3,pch=21)+
+geom_line(aes(y=OD_cm, color=Substrate),width=.5)+
+theme_classic()+
+geom_hline(yintercept=0)+
+geom_errorbar(aes(ymin=OD_cm-se,ymax=OD_cm+se,fill=Substrate,color=Substrate),
+stat="identity",width=.15,na.rm=T)+
+ylab(bquote('Optical Density  ('~cm^-2~')'))+
+theme(panel.background=element_blank())+xlab("Days of Incubation")
+#geom_boxplot(aes(y=OD_cm,group=time),alpha=0.01,position=position_dodge())
+substrate.plot.cv
+####chla first cut####
+require(ggplot2)
+require(gridExtra)
+require(ggpubr)
+#chl.data$chla_abs=abs(chl.data$chla_cm)
+chl.data=na.omit(chl.data)
+chl.sum=summarySE(chl.data,measurevar="chl_abs",groupvars=c("time","Sample"))
+raw.plot.chlv=ggplot(chl.sum,aes(time,group=Sample,na.rm=T))+
+geom_point(data=chl.sum,aes(y=chl_abs, fill=Sample),stat="identity",color="black",size=3,pch=21)+
+geom_line(aes(y=chl_abs, color=Sample),width=.5)+theme_classic()+
+geom_errorbar(aes(ymin=chl_abs-se,ymax=chl_abs+se,fill=Sample,color=Sample),
+stat="identity",width=.15,na.rm=T)+
+ylab(bquote('Chlorohyll-a ( '*mu~'g'~cm^-2~')'))+xlab("Days of Incubation")+
+theme(axis.line.x = element_line(color="black"),axis.line.y = element_line(color="black"))+
+scale_y_continuous(breaks=c(0,1,2,3))+theme_classic()
+#geom_boxplot(aes(y=chl_abs,group=time),alpha=0.01,position=position_dodge())
+raw.plot.chlv
+ggarrange(substrate.plot.cv+theme(axis.text.x=element_blank(),axis.line.x=element_blank(),axis.ticks.x=element_blank(),axis.title.x = element_blank()),
+raw.plot.chlv+theme(axis.text.x=element_text(angle=35,hjust=1)),common.legend = T,nrow=2,legend="right",align="v")
+#ggsave("chl.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+ggsave(ggarrange(substrate.plot.cv+theme(axis.text.x=element_blank(),axis.line.x=element_blank(),axis.ticks.x=element_blank(),axis.title.x = element_blank()),
+raw.plot.chlv+theme(axis.text.x=element_text(angle=35,hjust=1)),common.legend = T,nrow=2,legend="right",align="v"),
+device="jpeg",file="cv_od.jpeg",width=6.5,height=6.2, units="in")
+chl.aov=aov(chl_abs~Date.Sampled,data=chl.data)
+TUKEY.chl=TukeyHSD(chl.aov,conf.level=.95,'Date.Sampled',na.rm=T)
+plot(TUKEY.p,las=1,col="brown")
+generate_label_df<-function(TUKEY.chl,Date.Sampled){
+# Extract labels and factor levels from Tukey post-hoc
+Tukey.levels <- TUKEY.chl[[Date.Sampled]][,4]
+Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+#I need to put the labels in the same order as in the boxplot :
+Tukey.labels$treatment=rownames(Tukey.labels)
+Tukey.labels=Tukey.labels[order(Tukey.labels$treatment) , ]
+return(Tukey.labels)
+}
+LABELS.chl=generate_label_df(TUKEY.chl,"Date.Sampled")
+####Tukey plots####
+####split df by date####
+metabolism.data$dates=as.Date(metabolism.data$Date.Sampled, "%m/%d/%Y")
+metabolism.data$dates=as.factor(metabolism.data$Date.Sampled)
+metabolism.data$Date.Sampled2=as.character(metabolism.data$Date.Sampled)
+list.df<-split(metabolism.data, metabolism.data$dates)
+list2env(list.df,envir=.GlobalEnv)
+#for(i in 1:length(list.df)){
+#  assign(new.names[i],list.df[i])
+#}
+####ADDD IN SIG LETTERS?####
+#####plots####
+require(ggplot2)
+tukey.plots.gpp<-function(metabolism.data,na.rm=TRUE,...){
+dates_list=unique(metabolism.data$dates)
+for (i in seq_along(dates_list)){
+plot<-ggplot(metabolism.data[metabolism.data$dates==levels(metabolism.data$dates)[i],],
+aes(x=Sample,y=GPP,color=Sample))+geom_boxplot()+ggtitle(paste(dates_list[i]))
+print(plot)
+}
+}
+tukey.plots.gpp(metabolism.data)
+tukey.plots.nep<-function(metabolism.data,na.rm=TRUE,...){
+dates_list=unique(metabolism.data$dates)
+for (i in seq_along(dates_list)){
+plot<-ggplot(metabolism.data[metabolism.data$dates==levels(metabolism.data$dates)[i],],
+aes(x=Sample,y=NEP,color=Sample))+geom_boxplot()+ggtitle(paste(dates_list[i]))
+print(plot)
+}
+}
+tukey.plots.nep(metabolism.data)
+tukey.plots.Resp<-function(metabolism.data,na.rm=TRUE,...){
+dates_list=unique(metabolism.data$dates)
+for (i in seq_along(dates_list)){
+plot<-ggplot(metabolism.data[metabolism.data$dates==levels(metabolism.data$dates)[i],],
+aes(x=Sample,y=Resp,color=Sample))+geom_boxplot()+ggtitle(paste(dates_list[i]))
+print(plot)
+}
+}
+tukey.plots.Resp(metabolism.data)
+####data export####
+#wide.data=reshape(metabolism.data,timevar="time",direction="wide")
+#write.csv(wide.data,"exportfortim.csv")
+####EEA ####
+require(ggplot2)
+require(ggpubr)
+eea.df$dBG=eea.df$BGT2-eea.df$BGT1
+eea.df$dNAG=eea.df$NAGT2-eea.df$NAGT1
+eea.df$dP=eea.df$PT2-eea.df$PT1
+eea.df=na.omit(eea.df)
+eea.df=droplevels(eea.df[-which(eea.df$Date.Sampled=='09/05/17'),])  ####PLATE DROPPED THIS DATE!!!!!!!
+bg.aov=aov(BGT2~Date.Sampled,data=eea.df)
+TUKEY.bg=TukeyHSD(bg.aov,conf.level=.95,'Date.Sampled',na.rm=T)
+plot(TUKEY.bg,las=1,col="brown")
+generate_label_df<-function(TUKEY.bg,Date.Sampled){
+# Extract labels and factor levels from Tukey post-hoc
+Tukey.levels <- TUKEY.bg[[Date.Sampled]][,4]
+Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+#I need to put the labels in the same order as in the boxplot :
+Tukey.labels$treatment=rownames(Tukey.labels)
+Tukey.labels=Tukey.labels[order(Tukey.labels$treatment) , ]
+return(Tukey.labels)
+}
+LABELS.BG=generate_label_df(TUKEY.bg,"Date.Sampled")
+capture.output(TUKEY.bg,file="tukeybg.docx")
+nag.aov=aov(NAGT2~Date.Sampled,data=eea.df)
+TUKEY.nag=TukeyHSD(nag.aov,conf.level=.95,'Date.Sampled',na.rm=T)
+plot(TUKEY.nag,las=1,col="brown")
+generate_label_df<-function(TUKEY.nag,Date.Sampled){
+# Extract labels and factor levels from Tukey post-hoc
+Tukey.levels <- TUKEY.bg[[Date.Sampled]][,4]
+Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+#I need to put the labels in the same order as in the boxplot :
+Tukey.labels$treatment=rownames(Tukey.labels)
+Tukey.labels=Tukey.labels[order(Tukey.labels$treatment) , ]
+return(Tukey.labels)
+}
+LABELS.NAG=generate_label_df(TUKEY.nag,"Date.Sampled")
+p.aov=aov(PT2~Date.Sampled,data=eea.df)
+TUKEY.p=TukeyHSD(p.aov,conf.level=.95,'Date.Sampled',na.rm=T)
+plot(TUKEY.p,las=1,col="brown")
+generate_label_df<-function(TUKEY.p,Date.Sampled){
+# Extract labels and factor levels from Tukey post-hoc
+Tukey.levels <- TUKEY.bg[[Date.Sampled]][,4]
+Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+#I need to put the labels in the same order as in the boxplot :
+Tukey.labels$treatment=rownames(Tukey.labels)
+Tukey.labels=Tukey.labels[order(Tukey.labels$treatment) , ]
+return(Tukey.labels)
+}
+LABELS.P=generate_label_df(TUKEY.p,"Date.Sampled")
+capture.output(LABELS.BG,LABELS.NAG,LABELS.P,file="enz_tukey.docx")
+bg.sum=summarySE(eea.df,measurevar="BGT2",groupvars=c("time","Sample"))
+nag.sum=summarySE(eea.df,measurevar="NAGT2",groupvars=c("time","Sample"))
+p.sum=summarySE(eea.df,measurevar="PT2",groupvars=c("time","Sample"))
+exp.plot.bg=ggplot(bg.sum,aes(time,group=Sample,na.rm=T))+
+geom_point(data=bg.sum,aes(y=BGT2, fill=Sample),stat="identity",color="black",size=3,pch=21)+
+geom_line(aes(y=BGT2, color=Sample),width=.5)+
+geom_hline(yintercept=0)+theme_classic()+
+geom_errorbar(aes(ymin=BGT2-se,ymax=BGT2+se,fill=Sample,color=Sample),
+stat="identity",width=.15,na.rm=T)+
+ylab(bquote(atop(beta~'glucosidase',
+'( '*mu~'g'~cm^-2~h^-1~')')))
+#geom_boxplot(aes(y=BGT2,group=time),alpha=0.01,position=position_dodge())
+exp.plot.bg
+#ggsave("bgt2.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+exp.plot.nag=ggplot(nag.sum,aes(time,group=Sample,na.rm=T))+
+geom_point(data=nag.sum,aes(y=NAGT2, fill=Sample),stat="identity",color="black",size=3,pch=21)+
+geom_line(aes(y=NAGT2, color=Sample),width=.5)+
+geom_hline(yintercept=0)+theme_classic()+
+geom_errorbar(aes(ymin=NAGT2-se,ymax=NAGT2+se,fill=Sample,color=Sample),
+stat="identity",width=.15,na.rm=T)+
+ylab(bquote(atop('N-acetyl- '*beta~'-D glucosaminidase', '( '*mu~'g'~cm^-2~h^-1~')')))
+#geom_boxplot(aes(y=NAGT2,group=time),alpha=0.01,position=position_dodge())
+exp.plot.nag
+#ggsave("nagt2.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+exp.plot.p=ggplot(p.sum,aes(time,group=Sample,na.rm=T))+
+geom_point(data=p.sum,aes(y=PT2, fill=Sample),stat="identity",color="black",size=3,pch=21)+
+geom_line(aes(y=PT2, color=Sample),width=.5)+
+theme_classic()+
+geom_errorbar(aes(ymin=PT2-se,ymax=PT2+se,fill=Sample,color=Sample),
+stat="identity",width=.15,na.rm=T)+
+ylab(bquote(atop('Phosphatase', '( '*mu~'g'~cm^-2~h^-1~')')))+xlab("Date")+scale_y_continuous(limits=c(0,200))+
+scale_x_continuous(breaks=seq(0,30,5))+
+xlab("Days of Incubation")
+#geom_boxplot(aes(y=PT2,group=time),alpha=0.01,position=position_dodge())
+exp.plot.p
+#ggsave("pt2.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+ggarrange(exp.plot.bg+theme(legend.position = "none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.x = element_blank()),
+exp.plot.nag+theme(legend.position = "none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.x = element_blank()),
+exp.plot.p+theme(legend.position = "none"),nrow=3,align="v",common.legend = TRUE,legend="right",heights=c(1,1,1.25))
+ggsave("eea_compiled.jpeg",device="jpeg", width=8.5,height=11, units="in")
+cols=c(13,15,17)
+iv.string=names(combo.df)[cols]
+####Enz-metabolism regression plots####
+#require(ggpmisc)
+#reg.plots<-function(combo.df,na.rm=TRUE,...){
+sample_list=unique(combo.df$Sample)
+rv.string=names(combo.df)[5:7]
+cols=c(11,13,15)
+iv.string=names(combo.df)[cols]
+plots=list()
+#mypath <- file.path(paste("myplot_",names[i],names[j],names[k], ".jpg", sep = ""))
+for (i in seq_along(sample_list)){
+for(j in rv.string){
+for(k in iv.string){
+plots<-ggplot(combo.df[combo.df$Sample==levels(combo.df$Sample)[i],],
+aes_string(x=k,y=j))+
+geom_point(aes(colour=Date.Sampled))+
+geom_smooth(inherit.aes = TRUE, method="lm")+
+ggtitle(paste(sample_list[i]))+
+stat_poly_eq(formula=y~x,aes(label=paste(..eq.label..,..rr.label..,sep="~~~")),parse=TRUE)+
+stat_fit_glance(method='lm',method.args=list(formula=y~x),geom='text',aes(label=paste("P-value = ",signif(..p.value..,digits=4),sep="")),label.x.npc = 'right', label.y.npc = 0.35, size = 3)
+png(paste(i,j,k,".png",sep=""),width=600, height=500,res=120,units="px")
+print(plots)
+dev.off()
+}
+}
+}
+}
+#reg.plots(combo.df)
+####PCA####
+library(devtools)
+install_github("ggbiplot", "vqv")
+require(ggbiplot)
+library(pander)
+panderOptions('digits',4)
+panderOptions('round',4)
+panderOptions('keep.trailing.zeros',TRUE)
+cols=c(13,15,17)
+iv.string=names(combo.df)[cols]
+pca=prcomp(~Resp+GPP+NEP+BGT2+NAGT2+PT2+chl_abs+OD_cm,data=pc.df,scale=TRUE,center=T)
+summary(pca,print)
+capture.output(pca$sdev^2,file="eigenvalues.doc") #eigenvalues  #retain 1 and 2 by kaiser criterios
+predict(pca,newdata=tail(pc.df,2))
+pca.group=pc.df[2]
+pca.group2=pc.df[1]
+print(pca)
+plot(pca,type="l")
+p=ggbiplot(pca,obs.scale=1,
+var.scale=1,
+groups=pca.group2$Date.Sampled,ellipse=TRUE,
+circle=FALSE)
+p=p+geom_point(aes(shape=pca.group2$Date.Sampled),name=expression("Date Sampled"))+
+scale_shape_manual(name="Date Sampled",values=c(1:10),guide=F)+
+scale_color_brewer(name="Date Sampled",palette = "Spectral")+scale_x_continuous(breaks=seq(-3,7,1))+
+theme(legend.position = "right")
+#ggsave("pca.date.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+q=ggbiplot(pca,obs.scale=1,
+var.scale=1,
+groups=pca.group$Sample,ellipse=TRUE,circle=FALSE)
+q=q+geom_point(aes(shape=pca.group2$Date.Sampled))+
+scale_shape_manual(values=1:nlevels(factor(pca.group2$Date.Sampled)),guide=F)+
+scale_color_discrete(name="Substrate")+scale_x_continuous(breaks=seq(-3,7,1))+
+theme(legend.position = "right")
+#ggsave("pca.sample.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+ggarrange(p,q,align="v",nrow=2)
+ggsave("compiledpca.jpeg",device="jpeg", width=6.5,height=8.2, units="in")
+#####STacked bar plots####
+require(reshape)
+require(dplyr)#,position=position_dodge(.9)
+require(Rmisc)
+require(ggplot2)
+require(multcompView)
+require(cowplot)
+require(gridExtra)
+require(ggpubr)
+metabolism.data$GPP_OD=metabolism.data$GPP/cv.data$OD_cm
+metabolism.data$NEP_OD=metabolism.data$NEP/cv.data$OD_cm
+metabolism.data$Resp_OD=metabolism.data$Resp/cv.data$OD_cm
+bar.df=melt(metabolism.data,id.vars=c("time","Sample"),measure.vars = c("GPP","Resp","NEP","GPP_OD","NEP_OD","Resp_OD"),na.rm=TRUE)
+head(bar.df)
+bar.sum=summarySE(bar.df,measurevar="value",groupvars = c("time","variable","Sample"),na.rm=TRUE)
+resp.gpp.bar.plot=ggplot(bar.sum,aes(time,group=Sample,fill=Sample))+
+geom_point(data=subset(bar.sum,variable=="GPP"),shape=22, aes(y=value,fill=Sample),stat="identity",size=3,pch=21)+
+geom_point(data=subset(bar.sum,variable=="Resp"),aes(y=value,fill=Sample),stat="identity",color="black",size=3,pch=21)+
+geom_line(data=subset(bar.sum,variable=="GPP"), aes(y=value, color=Sample),width=.5)+
+geom_line(data=subset(bar.sum,variable=="Resp"), aes(y=value, color=Sample),width=.5)+
+geom_hline(yintercept=0)+theme_classic()+
+geom_errorbar(data=subset(bar.sum,variable=="GPP"),aes(ymin=value-se,ymax=value+se,fill=Sample,color=Sample),stat="identity",width=.15,na.rm=T)+
+geom_errorbar(data=subset(bar.sum,variable=="Resp"),aes(ymin=value-se,ymax=value+se,fill=Sample,color=Sample),stat="identity",width=.15,na.rm=T)+
+theme(axis.text.x=element_text(angle=45,hjust=1))+
+scale_y_continuous(limits=c(-1.15,1.15))+scale_x_continuous(breaks=seq(0,30,5))+
+ylab(bquote('mg O'[2]~''~cm^-2~''~hr^-1))+xlab(NULL)+annotate("text",x=0,y=1, label="GPP",hjust=0)+annotate("text",x=0,y=-1,label="Respiration",hjust=0)
+nep.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=variable))+
+geom_point(data=subset(bar.sum,variable=="NEP"),aes(y=value, fill=Sample),stat="identity",color="black",size=3,pch=21)+
+geom_line(data=subset(bar.sum,variable=="NEP"), aes(y=value, color=Sample),width=.5)+
+geom_hline(yintercept=0)+theme_classic()+
+geom_errorbar(data=subset(bar.sum,variable=="NEP"),
+aes(ymin=value-se,ymax=value+se,fill=Sample,color=Sample),
+stat="identity",width=.15,na.rm=T)+
+scale_y_continuous(limits=c(-1.15,1.15))+scale_x_continuous(breaks=seq(0,30,5))+
+ylab(bquote('mg O'[2]~''~cm^-2~''~hr^-1))+xlab("Days of Incubation")+annotate("text",x=0,y=1, label="NEP",hjust=0)
+ggarrange(resp.gpp.bar.plot+theme(legend.position = "none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()),nep.bar.plot+theme(legend.position = "none"),nrow=2,common.legend = TRUE,legend="bottom")
+ggsave("met.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+####PAR and Chl####
+require(ggplot2)
+par.lm=lm(int_par$Summed.PAR~int_par$Date.Sampled)
+psummary(par.lm)
+partable=
+int_par$Date.Sampled=as.Date(int_par$Date.Sampled,format='%m/%d/%y')
+par.plot=ggplot(data=int_par,aes(x=Date.Sampled,y=Summed.PAR))
+par.plot+geom_smooth(method="lm")+geom_point()+scale_color_gradient(low="blue",high="red")#+geom_text(x=as.Date("2017-08-29"),y=5000,label=lm_eqn(int_par),parse=T)
+####field data####
+usgs.df$Date <- as.Date(usgs.df$Date, format = "%m/%d/%Y")
+field.data$Date <- as.Date(field.data$Date, format = "%m/%d/%Y")
+field.plot=ggplot(data=usgs.df,aes(x=Date,y=Q*.0283168))
+field.plot=field.plot+geom_point()+geom_bar(data=field.data, aes(x=Date,y=Q),stat="identity",color="red",alpha=0.05,width=0.1)+
+ylab(bquote('(Q) '~m^-3~''~s^-1))+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme_classic()
+ggsave("discharge.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
+td.plot=ggplot(field.data,aes(x=Date,y=xdepth))+geom_point()+geom_line()
+td.plot+geom_bar(data=field.data,aes(x=Date,y=xtemp),color="red",stat="identity",width=0.1,alpha=0.05)+
+ylab(bquote('cm (black) or C'*degree~' (red)'))+theme_classic()
+ggsave("temp_depth.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
+setwd("C:/Users/samue/Google Drive/North Branch Chicago Data/NBC")
