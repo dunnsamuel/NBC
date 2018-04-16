@@ -1,7 +1,7 @@
 ---
 title: "NBC Figures"
 author: "Sam Dunn"
-date: "April 16th 2018"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: word_document
 fig_width: 8.5
 fig_height: 6.5 
@@ -29,7 +29,52 @@ substrate.plot.cv
 ```
 
 ```{r fig.height=8.5,fig.width=8.5,message=FALSE}
-attach(stacked.bar)
+bar.df=melt(metabolism.data,id.vars=c("time","Sample"),measure.vars = c("GPP","Resp","NEP","GPP_OD","NEP_OD","Resp_OD"),na.rm=TRUE)
+head(bar.df)
+bar.sum=summarySE(bar.df,measurevar="value",groupvars = c("time","variable","Sample"),na.rm=TRUE)
+bar.sum=summarySE(bar.df,measurevar="value",groupvars = c("time","variable","Sample"),na.rm=TRUE)
+na.omit(bar.sum)
+
+gpp.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=Sample))+
+  geom_point(data=subset(bar.sum,variable=="GPP"), aes(y=value,shape=Sample),stat="identity",size=3)+
+  geom_line(data=subset(bar.sum,variable=="GPP"), aes(y=value, linetype=Sample),width=.5)+
+  theme_classic()+
+  geom_errorbar(data=subset(bar.sum,variable=="GPP"),
+                aes(ymin=value-se,ymax=value+se,fill=Sample),
+                stat="identity",width=.15,na.rm=T)+
+  scale_x_continuous(breaks=seq(0,30,5))+
+  ylab(bquote(atop('GPP', 'mg O'[2]~''~cm^-2~''~hr^-1)))+
+  xlab(NULL)+theme(legend.position =c(0.15,0.75),legend.title=element_blank())+
+  annotate("text",x=-1,y=1, label="paste(bold(a))",parse=T)
+
+resp.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=Sample))+
+  geom_point(data=subset(bar.sum,variable=="Resp"),aes(y=value,shape=Sample),stat="identity",color="black",size=3)+
+  geom_line(data=subset(bar.sum,variable=="Resp"), aes(y=value, linetype=Sample),width=.5)+
+  theme_classic()+
+  geom_errorbar(data=subset(bar.sum,variable=="Resp"),
+                aes(ymin=value-se,ymax=value+se,fill=Sample),
+                stat="identity",width=.15,na.rm=T)+
+  scale_x_continuous(breaks=seq(0,30,5),position="top")+
+  ylab(bquote(atop('Respiration','mg O'[2]~''~cm^-2~''~hr^-1)))+
+  xlab(NULL)+theme(legend.position =  'none',legend.title=element_blank())+
+  annotate("text",x=-1,y=0, label="paste(bold(b))",parse=T)
+
+
+nep.bar.plot=ggplot(bar.sum,aes(time,shape=Sample,group=Sample))+
+  geom_point(data=subset(bar.sum,variable=="NEP"),na.rm=T,aes(y=value, shape=Sample),stat="identity",color="black",size=3)+
+  geom_line(data=subset(bar.sum,variable=="NEP"),na.rm=T, aes(y=value, linetype=Sample),width=.5)+
+  geom_hline(yintercept=0)+theme_classic()+
+  geom_errorbar(data=subset(bar.sum,variable=="NEP"),
+                aes(ymin=value-se,ymax=value+se,fill=Sample),
+                stat="identity",width=.15,na.rm=T)+scale_x_continuous(breaks=seq(0,30,5))+
+  ylab(bquote(atop('NEP','mg O'[2]~''~cm^-2~''~hr^-1)))+xlab("Days of Incubation")+
+  scale_y_continuous(breaks=seq(-1,1,0.5))+
+  theme(legend.position = 'none',legend.title=element_blank())+
+  annotate("text",x=-1,y=1, label="paste(bold(c))",parse=T)
+
+stacked.bar=ggarrange(gpp.bar.plot+theme(axis.text.x=element_blank()),
+                      resp.bar.plot+theme(axis.text.x=element_blank()),
+                      nep.bar.plot,nrow=3,align="v",heights=c(1,1,1.25))
 stacked.bar
 ```
 
@@ -52,6 +97,9 @@ pca.bw
 
 
 ```{r Field Data, fig.height=11,fig.width=8.5,message=FALSE}
+library(lubridate)
+
+
 usgs.df=read.csv("usgs_niles.csv") #timestamp
 usgs.df$Date=as.character(lapply(strsplit(as.character(usgs.df$timestamp), split=" "), "[", 1))
 usgs.df$time=as.character(lapply(strsplit(as.character(usgs.df$timestamp), split=" "), "[", 2))
@@ -71,32 +119,21 @@ field.data=read.csv("fielddata.csv") #(mdY)
 #field.data$Date=strptime(as.character(field.data$Date),"%m/%d/%Y")
 #field.data$Date=format(field.data$Date,"%m/%d/%y")
 field.data$disdate=as.POSIXct(paste(field.data$Date),format="%m/%d/%Y") #works with USGS data
+q.density.df=read.csv("nwis.waterdata.usgs.gov.csv")
 
 
-
-
-
-field.plot=ggplot(data=usgs.df,aes(x=datetime,y=Q*.0283168))
-field.plot=field.plot+geom_point()+
-  geom_point(data=field.data, aes(x=disdate,y=Q),shape=8)+
-  geom_line()+
-  ylab(bquote('(Q) '~m^-3~''~s^-1))+
-  xlab(bquote("Date"))+
-  scale_x_datetime(breaks=pretty_breaks(10))+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  scale_y_continuous(breaks=seq(0,4,0.5))
-#ggsave("discharge.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
 
 
 td.plot=ggplot(hobo,aes(x=datetime,y=Temp))+geom_point()
 td.plot=td.plot+geom_line()+
   geom_point(data=par.df,aes(x=date.time,y=microMole.s.m2/4000),color="red")+
   geom_line(data=par.df, aes(x=date.time,y=microMole.s.m2/4000),color="red")+
-  scale_y_continuous(sec.axis=sec_axis(~.*4000,name=bquote(atop('PAR','(mol photons m'^-2~' s'^-1~')'))))+
+  scale_y_continuous(sec.axis=sec_axis(~.*4000,name=bquote(atop('PAR','(mol photons m'^-2~' s'^-1~')',color="red"))))+
   xlab(bquote("Date"))+
   ylab(bquote(atop('Water Temperature','(C'*degree~')')))+
   scale_x_datetime(breaks=pretty_breaks(11))+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))#+
+ # annotate("text",x=0,y=25, label="paste(bold(a))",parse=T)
 #ggsave("temp_depth.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
 
 dil.fac=10
@@ -116,9 +153,33 @@ chem.plot=ggplot(data=water.sum,aes(x=Date,y=value,group=Ions,shape=Ions))+geom_
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   theme(panel.background=element_blank(),
         legend.title=element_blank(),
-        legend.position=c(0.05,0.85))
+        legend.position=c(0.05,0.85))#+
+  #annotate("text",x=0,y=3.25, label="paste(bold(b))",parse=T)
 #chem.plot
 #ggarrange(chem.plot,legend="bottom")
+dens.plot=ggplot(data=q.density.df,aes(x=discharge*.0283168))+geom_density()+geom_vline(data=q.density.df,aes(xintercept=mean(discharge*.0283168)), linetype="dashed")+coord_flip()
+dens.plot
+avg.q=summary(q.density.df$discharge*.0283168)
+
+
+field.plot=ggplot(data=usgs.df,aes(x=datetime,y=Q*.0283168))
+field.plot=field.plot+geom_point()+
+  geom_point(data=field.data, aes(x=disdate,y=Q),shape=8)+
+  geom_line()+
+  ylab(bquote('(Q) '~m^-3~''~s^-1))+
+  xlab(bquote("Date"))+
+  scale_x_datetime(breaks=pretty_breaks(10))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(breaks=seq(0,4,0.5))+
+  geom_hline(yintercept=2.305, linetype="dashed",color="grey")
+
+dens.plot=ggplot(data=q.density.df,aes(x=discharge))+geom_density()+geom_vline(data=q.density.df,aes(xintercept=mean(discharge)), linetype="dashed")+coord_flip()
+dens.plot
+
+#+
+ # annotate("text", x = as.numeric(), y = Inf, label="paste(bold(c))",parse=T)
+#ggsave("discharge.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
+
 
 ggarrange(td.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank()),
           chem.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank()),
