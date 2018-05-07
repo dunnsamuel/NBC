@@ -43,7 +43,7 @@ We have 1,737,300 sequences!  The "vegan" package is for diversity and other com
 
 ```{r Shannon Diversity,echo=FALSE,warning=FALSE}
 
-S=apply(bacteria.df[,6:65],2,sum)
+#S=apply(bacteria.df[,6:65],2,sum)
 
 shannon<-function(x){
   shan.list=diversity(x,index="shannon")
@@ -108,7 +108,7 @@ Pielou's evenness is the standard evenness metric
 bacteria.df$taxlevel=as.factor(bacteria.df$taxlevel)
 bacteria.df.6=subset.data.frame(bacteria.df, taxlevel==6,drop=TRUE)
 observationThreshold = 1
-otu=apply(bacteria.df.6[,6:65] >= observationThreshold, 2, sum,na.rm=T)
+otu=apply(bacteria.df.6, >=observationThreshold, 2, sum)
 otu.0=apply(bacteria.df.6[,6:65],2,sum,na.rm=T)
 
 list_to_df <- function(list_for_df) {
@@ -188,41 +188,59 @@ rabund.1=aggregate(rabund.1[,3:28],list(rabund.1$Substrate),mean)
 rabund.1=melt(rabund.1, id="Group.1")
 rabund.1$Group.1=as.factor(rabund.1$Group.1)
 
+
 rabund.2=filter(rabund.df,Date==170828)
 rabund.2$Date=NULL
 rabund.2=aggregate(rabund.2[,3:28],list(rabund.2$Substrate),mean)
 rabund.2=melt(rabund.2, id="Group.1")
+
 
 rabund.3=filter(rabund.df, Date==170905)
 rabund.3$Date=NULL
 rabund.3=aggregate(rabund.3[,3:28],list(rabund.3$Substrate),mean)
 rabund.3=melt(rabund.3, id="Group.1")
 
+
 rabund.4=filter(rabund.df, Date==170915)
 rabund.4$Date=NULL
 rabund.4=aggregate(rabund.4[,3:28],list(rabund.4$Substrate),mean)
 rabund.4=melt(rabund.4, id="Group.1")
+
+
+
 
 #select top 10 by substrate
 rabund.1.10=rabund.1%>%
   group_by(Group.1)%>%
   arrange(Group.1,desc(value))%>%
   slice(seq(n()*.4))
+rabund.1.sigma=dcast(rabund.1.10,Group.1~variable)
+rabund.1.sigma=t(rabund.1.sigma)
+write.table(rabund.1.sigma,file="170818_rabund.txt",sep="\t")
 
 rabund.2.10=rabund.2%>%
   group_by(Group.1)%>%
   arrange(Group.1,desc(value))%>%
   slice(seq(n()*.4))
+rabund.2.sigma=dcast(rabund.2.10,Group.1~variable)
+rabund.2.sigma=t(rabund.2.sigma)
+write.table(rabund.2.sigma,file="170828_rabund.txt",sep="\t")
 
 rabund.3.10=rabund.3%>%
   group_by(Group.1)%>%
   arrange(Group.1,desc(value))%>%
   slice(seq(n()*.4))
+rabund.3.sigma=dcast(rabund.3.10,Group.1~variable)
+rabund.3.sigma=t(rabund.3.sigma)
+write.table(rabund.3.sigma,file="170905_rabund.txt",sep="\t")
 
 rabund.4.10=rabund.4%>%
   group_by(Group.1)%>%
   arrange(Group.1,desc(value))%>%
   slice(seq(n()*.4))
+rabund.4.sigma=dcast(rabund.4.10,Group.1~variable)
+rabund.4.sigma=t(rabund.4.sigma)
+write.table(rabund.4.sigma,file="170915_rabund.txt",sep="\t")
 
   
 
@@ -256,7 +274,7 @@ stack.16s.4=ggplot(rabund.4.10, aes(x=Group.1,y=value,group=variable,color=varia
   xlab("Substrate")+
   theme_classic()
 stack.16s.4
-#ggarrange(stack.16s.1,stack.16s.2,stack.16s.3,stack.16s.4,ncol=2,nrow=2,labels="auto",common.legend=TRUE,legend="bottom", font.label = list(size = 18, color = "black"))
+ggarrange(stack.16s.1,stack.16s.2,stack.16s.3,stack.16s.4,ncol=2,nrow=2,labels="auto",legend="right", font.label = list(size = 18, color = "black"))
 
 #grid.arrange(stack.16s.1,stack.16s.2,stack.16s.3,stack.16s.4)
 
@@ -278,7 +296,7 @@ nmds.16=separate(nmds.16,group,into=c("Date","Substrate"),sep=c(6))
 nmds.16=separate(nmds.16,Substrate,into=c("Substrate","Rep"),sep=c(-1))
 nmds.16=droplevels(nmds.16[-which(nmds.16$Substrate=='CR'),])
 
-nmds.theta.plot=ggplot(nmds.16,aes(x=axis1,y=axis2,color=Substrate,size=Date,shape=Date))+geom_point()
+nmds.theta.plot=ggplot(nmds.16,aes(x=axis1,y=axis2,color=Substrate,size=Date,shape=Date))+geom_point()+theme_classic()
 nmds.theta.plot
 
 ```

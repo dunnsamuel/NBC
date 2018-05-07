@@ -415,10 +415,12 @@ raw.plot.n+geom_smooth(inherit.aes=TRUE)+
 #ggsave("NEP.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
 
 ####crystal violet first cut####
+devtools::install_github("const-ae/ggsignif")
+library(ggsignif)
 library(ggplot2)
 cv.data=na.omit(cv.data)
 cv.sum=summarySE(cv.data,measurevar="OD_cm",groupvars=c("time","Substrate"))
-substrate.plot.cv=ggplot(cv.sum,aes(time,group=Substrate,na.rm=T))+
+substrate.plot.cv=ggplot(cv.sum,aes(time,group=Substrate,na.rm=T,y=OD_cm))+
   geom_point(data=cv.sum,aes(y=OD_cm,shape=Substrate),stat="identity",color="black",size=3)+
   geom_line(aes(y=OD_cm,linetype=Substrate),width=.5)+
   theme_classic()+
@@ -426,10 +428,15 @@ substrate.plot.cv=ggplot(cv.sum,aes(time,group=Substrate,na.rm=T))+
   geom_errorbar(aes(ymin=OD_cm-se,ymax=OD_cm+se,fill=Substrate),
                 stat="identity",width=.15,na.rm=T)+
   ylab(bquote('Optical Density  ('~cm^-2~')'))+
-  theme(panel.background=element_blank(),legend.title=element_blank(),legend.position=c(0.15,0.85))+xlab("Days of Incubation")
-    
+  theme(panel.background=element_blank(),
+        legend.title=element_blank(),
+        legend.position=c(0.15,0.85))+xlab("Days of Incubation")+scale_x_continuous(breaks=seq(0,30,5))
 substrate.plot.cv
 ggsave("cv_od.jpeg",device="jpeg", width=6.5 ,height=6.5, units="in")
+
+
+
+
 
 ####chla first cu####
 require(ggplot2)
@@ -447,7 +454,7 @@ raw.plot.chlv=ggplot(chl.sum,aes(time,group=Sample,na.rm=T))+
                 stat="identity",width=.15,na.rm=T)+
   ylab(bquote('Chlorohyll-a ( '*mu~'g'~cm^-2~')'))+xlab("Days of Incubation")+
   theme(axis.line.x = element_line(color="black"),axis.line.y = element_line(color="black"),legend.position=c(0.15,0.85),legend.title=element_blank())+
-  scale_y_continuous(breaks=c(0,1,2,3))
+  scale_y_continuous(breaks=c(0,1,2,3))+scale_x_continuous(breaks=seq(0,30,5))
 raw.plot.chlv
 #ggarrange(substrate.plot.cv+theme(axis.text.x=element_blank(),axis.line.x=element_blank(),axis.ticks.x=element_blank(),axis.title.x = element_blank()),
           #raw.plot.chlv+theme(axis.text.x=element_text(angle=35,hjust=1)),common.legend = T,nrow=2,legend="right",align="v")
@@ -491,7 +498,7 @@ tukey.plots.gpp<-function(metabolism.data,na.rm=TRUE,...){
   }
 }
 
-tukey.plots.gpp(metabolism.data)
+#tukey.plots.gpp(metabolism.data)
 
 
 tukey.plots.nep<-function(metabolism.data,na.rm=TRUE,...){
@@ -503,7 +510,7 @@ tukey.plots.nep<-function(metabolism.data,na.rm=TRUE,...){
   }
 }
 
-tukey.plots.nep(metabolism.data)
+#tukey.plots.nep(metabolism.data)
 
 tukey.plots.Resp<-function(metabolism.data,na.rm=TRUE,...){
   dates_list=unique(metabolism.data$dates)
@@ -514,7 +521,7 @@ tukey.plots.Resp<-function(metabolism.data,na.rm=TRUE,...){
   }
 }
 
-tukey.plots.Resp(metabolism.data)
+#tukey.plots.Resp(metabolism.data)
 
 
 ####EEA ####
@@ -621,7 +628,7 @@ exp.plot.p=ggplot(p.sum,aes(time,group=Sample,na.rm=T))+
 exp.plot.p
 
 
-ggarrange(exp.plot.bg+theme(axis.text.x=element_blank(),axis.title.x = element_blank()),
+enz.plots=ggarrange(exp.plot.bg+theme(axis.text.x=element_blank(),axis.title.x = element_blank()),
           exp.plot.nag+theme(legend.position = "none",axis.text.x=element_blank(),axis.title.x = element_blank()),
           exp.plot.p+theme(legend.position = "none"),nrow=3,align="v",common.legend = FALSE,heights=c(1,1,1.25) )
 ggsave("eea_compiled.jpeg",device="jpeg", width=8.5,height=11, units="in")
@@ -646,7 +653,7 @@ exp.plot.bg.od=ggplot(bg.sum.od,aes(time,group=Sample,na.rm=T))+
 #geom_boxplot(aes(y=BGT2,group=time),alpha=0.01,position=position_dodge())
 
 exp.plot.bg.od
-ggsave("bgt2.od.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+#ggsave("bgt2.od.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
 
 exp.plot.nag.od=ggplot(nag.sum.od,aes(time,group=Sample,na.rm=T))+
   geom_point(data=nag.sum.od,aes(y=NAGT2_OD, fill=Sample),stat="identity",color="black",size=3,pch=21)+
@@ -658,7 +665,7 @@ exp.plot.nag.od=ggplot(nag.sum.od,aes(time,group=Sample,na.rm=T))+
   scale_x_continuous(breaks=seq(0,30,5))
 #geom_boxplot(aes(y=NAGT2,group=time),alpha=0.01,position=position_dodge())
 exp.plot.nag.od
-ggsave("nagt2.od.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+#ggsave("nagt2.od.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
 
 
 exp.plot.p.od=ggplot(p.sum.od,aes(time,group=Sample,na.rm=T))+
@@ -671,7 +678,7 @@ exp.plot.p.od=ggplot(p.sum.od,aes(time,group=Sample,na.rm=T))+
   xlab("Days of Incubation")
 #geom_boxplot(aes(y=PT2,group=time),alpha=0.01,position=position_dodge())
 exp.plot.p.od
-ggsave("pt2.od.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
+#ggsave("pt2.od.jpeg",device="jpeg", width=6.5,height=6.2, units="in")
 
 ####Enz-metabolism regression plots####
 write.csv(combo.df,file="combodf.csv")
@@ -702,7 +709,7 @@ reg.plots<-function(combo.df,na.rm=TRUE,...){
   }
 }
 
-reg.plots(combo.df)
+#reg.plots(combo.df)
 
 
 
@@ -862,11 +869,11 @@ nep.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=variable))+
 
 
 
-ggarrange(resp.gpp.bar.plot+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),
-                                  axis.ticks.x=element_blank()),nep.bar.plot+theme(legend.position = "none"),nrow=2,
-          common.legend = F)
-ggsave("met.jpeg",device="jpeg", width=8.5,height=6.2, units="in")
-
+#stacked.bar=ggarrange(resp.gpp.bar.plot+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),
+                                  axis.ticks.x=element_blank()),nep.bar.plot+theme(legend.position = "none"),nrow=2,common.legend = F)
+#stacked.bar
+#("met.jpeg",device="jpeg", width=8.5,height=6.2, units="in")
+#
 #breakup GPP RESP
 
 bar.sum=summarySE(bar.df,measurevar="value",groupvars = c("time","variable","Sample"),na.rm=TRUE)
@@ -904,8 +911,10 @@ nep.bar.plot=ggplot(bar.sum,aes(time,shape=Sample,group=Sample))+
   scale_y_continuous(breaks=seq(-1,1,0.5))+
   theme(legend.position = c(0.15,0.85),legend.title=element_blank())
 
-ggarrange(gpp.bar.plot+theme(axis.text.x=element_blank()),resp.bar.plot+theme(axis.text.x=element_blank()),nep.bar.plot,nrow=3,common.legend = TRUE,legend="bottom",align="v",heights=c(1,1,1.25))
-ggsave("stacked_met.jpeg",device="jpeg",width=11, height=8.5,units="in")
+stacked.bar=ggarrange(gpp.bar.plot+theme(axis.text.x=element_blank()),
+                      resp.bar.plot+theme(axis.text.x=element_blank()),
+                      nep.bar.plot,nrow=3,common.legend = TRUE,legend="bottom",align="v",heights=c(1,1,1.25),labels="auto")
+ggsave("stacked_met.jpeg",device="jpeg",width=8.5, height=8.5,units="in")
 
 ###per OD
 bar.sum=summarySE(bar.df,measurevar="value",groupvars = c("time","variable","Sample"),na.rm=TRUE)
@@ -957,10 +966,10 @@ hobo=cbind(hobo.a,hobo.b$Temp,hobo.b$Intensity)
 hobo$datetime=as.POSIXct(paste(hobo$Date,hobo$Time), format="%m/%d/%Y %H:%M:%S")
 usgs.df$datetime=mdy_hm(usgs.df$timestamp)
 field.data$disdate=as.POSIXct(paste(field.data$Date),format="%m/%d/%Y")
-#field.data$disdate=mdy(field.data$Date)
+#field.data$disdate=mdy(field.data$Date)#
 par.df$date.time=as.POSIXct(paste(par.df$Date,par.df$Time),format="%m/%d/%y %H:%M:%S")
 par.df$datetime=ymd_hms(par.df$date.time)
-water$Date=mdy(water$Date)
+water$Date=mdy(water$Date) #formatting issue
 
 water$no310=water$no3/10
 water.long=melt(water,id.vars="Date",measure.vars = c("srp","nh4","no310"),variable_name="compound")
@@ -980,6 +989,7 @@ summary(nh4.lm)
 
 
 ###water chem plots####
+q.density.df=read.csv("usgs_seasonal.csv")
 
 dil.fac=10
 chem.plot=ggplot(data=water,aes(x=Date,y=srp))+geom_point()+geom_smooth(data=water,aes(x=Date,y=srp),color="black")+
