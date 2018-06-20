@@ -4,8 +4,10 @@ title: "NBC 16s Analyses.`r format(Sys.time(), '%d %B, %Y')`"
 author: "Sam Dunn"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  word_document: default
+  html_document:
+    df_print: paged
   pdf_document: default
+  word_document: default
 ---
 
 This is the grpahing and statistical analyses for the 16s sequences collected for the NBC project in 2017.  Analyses began in Mothur on April 4th 2018 and were compelted on April 18th 2018.  A taxonomic summary was exported from mothur to R on 4/19/2018 and was canalyses and visualized within this document.
@@ -13,6 +15,7 @@ This is the grpahing and statistical analyses for the 16s sequences collected fo
 ####
 
 ```{r Load Data, include=FALSE,echo=FALSE,warning=FALSE}
+rm(list = ls(all = TRUE))
 bacteria.df=read.csv("nbc16s.final.subsample.tax.summary.csv")
 #str(bacteria.df)
 library(vegan)
@@ -31,9 +34,28 @@ library(dplyr)
 library(ggpubr)
 library(gridExtra)
 library(patternplot)
+library(tibble)
+#devtools::install_github("timelyportfolio/sunburstR")
+library(sunburstR)
+library(broom)
+library(data.table)
+library(devtools)
+install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+library(pairwiseAdonis)
 #bacteria.df=subset.data.frame(bacteria.df, taxlevel=3) #select for genus level sequences
 theme_set(theme_gray(base_size = 18))
+pd=position_dodge(width=0.4)
 
+design.file=as.data.frame(colnames(bacteria.df))
+design.file=as.data.frame(design.file)
+design.file=t(design.file)
+design.file=as.data.frame(design.file)
+
+design.file=separate(design.file,'colnames(bacteria.df)',into=c("x","Group"),sep=c(1))
+design.file$x=NULL
+design.file=separate(design.file,Group,into=c("Date","Substrate"),sep=c(6),remove=FALSE)
+design.file=separate(design.file,Substrate,into=c("Substrate","Rep"),sep=c(-1))
+write.table(design.file,file="NBC_design.txt",sep="\t")
 
 
 
@@ -51,7 +73,7 @@ shannon<-function(x){
 }
 
 
-shannon.nbc=apply(bacteria.df[,6:65],2,shannon)
+shannon.nbc=apply(bacteria.df[,6:67],2,shannon)
 
 
 
@@ -76,13 +98,24 @@ shannon.df$pielou=shannon.df$value/log(202685)
 shannon.df=separate(shannon.df,name,into=c("junk","Date","Substrate"),sep=c(1,7))
 shannon.df=separate(shannon.df,Substrate,into=c("Substrate","Rep"),sep=c(-1))
 shannon.df$junk=NULL
+shannon.df=droplevels(shannon.df[-which(shannon.df$Substrate=='CR'),])
+shannon.df$Date=as.factor(shannon.df$Date)
+shannon.df$Date=revalue(shannon.df$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
 
 shannon.div.summary=summarySE(shannon.df,measurevar="value",groupvars=c("Date","Substrate"),na.rm=TRUE)
 shannon.even.summary=summarySE(shannon.df,measurevar="pielou",groupvars=c("Date","Substrate"),na.rm=TRUE)
 
-shannon.div=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate))+
-  geom_point()+geom_line(aes(linetype=Substrate))+
-  geom_errorbar(aes(ymin=value-se,ymax=value+se),width=0.1)+ylab("Shannon Diversity (H')")
+shannon.div=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate,fill=Substrate))+
+  geom_point(position=pd,size=4)+geom_line(aes(linetype=Substrate),position=pd)+
+  geom_errorbar(aes(ymin=value-se,ymax=value+se),width=0.3,position=pd)+ylab("Shannon Diversity (H')")+
+  theme_classic()+
+  theme(legend.position=c(0.25,0.95),
+        legend.title=element_blank(),
+        legend.direction="horizontal",
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14))+
+  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25))
 shannon.div
 
 
@@ -95,9 +128,15 @@ Shannon-wiener diveristy averaged across sampling replicates
 
 ```{r Shannon Evenness,echo=FALSE,warning=FALSE}
 
-shannon.even=ggplot(shannon.even.summary, aes(x=Date,y=pielou,group=Substrate,shape=Substrate))+
-  geom_point()+geom_line(aes(linetype=Substrate))+
-  geom_errorbar(aes(ymin=pielou-se,ymax=pielou+se),width=0.1)+ylab("Pielou's Evenness")
+shannon.even=ggplot(shannon.even.summary, aes(x=Date,y=pielou,group=Substrate,shape=Substrate,fill=Substrate))+
+  geom_point(position=pd,size=4)+geom_line(aes(linetype=Substrate),position=pd)+
+  geom_errorbar(aes(ymin=pielou-se,ymax=pielou+se),width=0.3,position=pd)+ylab("Pielou's Evenness")+
+  theme_classic()+
+  theme(legend.position=c(0.25,0.95),legend.title=element_blank(),legend.direction="horizontal",
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14))+
+  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25))
 shannon.even
 ```
 
@@ -108,8 +147,8 @@ Pielou's evenness is the standard evenness metric
 bacteria.df$taxlevel=as.factor(bacteria.df$taxlevel)
 bacteria.df.6=subset.data.frame(bacteria.df, taxlevel==6,drop=TRUE)
 observationThreshold = 1
-otu=apply(bacteria.df.6, >=observationThreshold, 2, sum)
-otu.0=apply(bacteria.df.6[,6:65],2,sum,na.rm=T)
+otu=apply(bacteria.df.6[,6:67]>=observationThreshold, 2, sum,na.rm=T)
+otu.0=apply(bacteria.df.6[,6:67],2,sum,na.rm=T)
 
 list_to_df <- function(list_for_df) {
   list_for_df <- as.list(list_for_df)
@@ -128,12 +167,37 @@ otu.df$value=as.numeric(otu.df$value)
 otu.df=separate(otu.df,name,into=c("junk","Date","Substrate"),sep=c(1,7))
 otu.df=separate(otu.df,Substrate,into=c("Substrate","Rep"),sep=c(-1))
 otu.df$junk=NULL
+otu.df=droplevels(otu.df[-which(otu.df$Substrate=='CR'),])
+otu.df$Date=as.factor(otu.df$Date)
+otu.df$Date=revalue(otu.df$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
+
+out.aov=otu.df%>%
+  group_by(Date)%>%
+  do(tidy(aov(value~Substrate,data=.)))
+out.aov
+
+tukey.out=otu.df%>%
+  group_by(Date)%>%
+  do(multitst=TukeyHSD(aov(value~Substrate,data=.)))
+tukey.out %>%tidy(multitst)
+
+
 
 otu.df.summary=summarySE(otu.df,measurevar="value",groupvars=c("Date","Substrate"),na.rm=TRUE)
 
-otu.plot=ggplot(otu.df.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate))+
-  geom_point()+geom_line(aes(linetype=Substrate))+
-  geom_errorbar(aes(ymin=value-se,ymax=value+se),width=0.1)+ylab("Observed OTUs")
+pd=position_dodge(width=0.4)
+otu.plot=ggplot(otu.df.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate,fill=Substrate))+
+  geom_point(position=pd,size=4)+geom_line(aes(linetype=Substrate),position=pd)+
+  geom_errorbar(aes(ymin=value-se,ymax=value+se),width=0.3,position=pd)+
+  ylab("Observed OTUs")+
+  theme_classic()+
+  theme(legend.position=c(0.25,0.95),
+        legend.title=element_blank(),
+        legend.direction="horizontal",
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14))+
+  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25))
 otu.plot
 ```
 
@@ -145,23 +209,18 @@ Taxonomic cutoff set for genus level, can restirct to phylum to match up with st
 theme_set(theme_classic(base_size = 18))
 bacteria.df.3=subset.data.frame(bacteria.df, taxlevel==2,drop=TRUE)
 
-sites=list(colnames(bacteria.df.3[,6:65])) #get list of samples
+sites=list(colnames(bacteria.df.3[,6:67])) #get list of samples
 total=list(colnames(bacteria.df.3[,1]))
 
 
 rabund=function(sites){
-  r.abund=sites/bacteria.df.3$total
-  return(r.abund)
+  rabund=sites/bacteria.df.3$total
+  return(rabund)
 }
 
-rabund.df=rabund(bacteria.df.3[,6:65])
+rabund.df=rabund(bacteria.df.3[,6:67])
 rabund.df=cbind(bacteria.df.3$taxon,rabund.df)
 
-
-sum.test=bacteria.df.3[49,]
-te=(sum.test[,6:65])
-tea=as.data.frame(t(te),names=c("name"))
-#sum(tea$`490`)
 
 
 rabund.df=dcast(melt(rabund.df,id.vars="bacteria.df.3$taxon"),variable~bacteria.df.3$taxon)
@@ -171,6 +230,8 @@ rabund.df=separate(rabund.df,Substrate,into=c("Substrate","Rep"),sep=c(-1))
 rabund.df$junk=NULL
 
 rabund.df=droplevels(rabund.df[-which(rabund.df$Substrate=='CR'),])
+rabund.df$Date=as.factor(rabund.df$Date)
+rabund.df$Date=revalue(rabund.df$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
 #rabund.df$Date=as.factor(rabund.df$Date)
 #rabund.df$Substrate=as.factor(rabund.df$Substrate)
 #rabund.df%>%
@@ -179,31 +240,38 @@ rabund.df=droplevels(rabund.df[-which(rabund.df$Substrate=='CR'),])
 #taxa=as.vector(colnames(rabund.df[,4:687]))
 #names(taxa)=c("taxa")
 
+rabund.h=aggregate(rabund.df[,4:30],list(rabund.df$Date,rabund.df$Substrate),mean)
+taxa=list(colnames(rabund.h[,4:29])) 
+rabund.h=melt(rabund.h,id.vars=c("Group.1","Group.2"))
+ggplot(rabund.h, aes(Group.1,Group.2,fill=value))+geom_tile()+
+  facet_grid(variable~Group.2)
+  
+
 
 
 #rabund.long=melt(rabund.df, id.vars="bacteria.df.6$taxon",variable.name="Sample")
-rabund.1=filter(rabund.df, Date==170818)
+rabund.1=filter(rabund.df, Date==3)
 rabund.1$Date=NULL
-rabund.1=aggregate(rabund.1[,3:28],list(rabund.1$Substrate),mean)
+rabund.1=aggregate(rabund.1[,3:29],list(rabund.1$Substrate),mean)
 rabund.1=melt(rabund.1, id="Group.1")
 rabund.1$Group.1=as.factor(rabund.1$Group.1)
 
 
-rabund.2=filter(rabund.df,Date==170828)
+rabund.2=filter(rabund.df,Date==10)
 rabund.2$Date=NULL
-rabund.2=aggregate(rabund.2[,3:28],list(rabund.2$Substrate),mean)
+rabund.2=aggregate(rabund.2[,3:29],list(rabund.2$Substrate),mean)
 rabund.2=melt(rabund.2, id="Group.1")
 
 
-rabund.3=filter(rabund.df, Date==170905)
+rabund.3=filter(rabund.df, Date==21)
 rabund.3$Date=NULL
-rabund.3=aggregate(rabund.3[,3:28],list(rabund.3$Substrate),mean)
+rabund.3=aggregate(rabund.3[,3:29],list(rabund.3$Substrate),mean)
 rabund.3=melt(rabund.3, id="Group.1")
 
 
-rabund.4=filter(rabund.df, Date==170915)
+rabund.4=filter(rabund.df, Date==31)
 rabund.4$Date=NULL
-rabund.4=aggregate(rabund.4[,3:28],list(rabund.4$Substrate),mean)
+rabund.4=aggregate(rabund.4[,3:29],list(rabund.4$Substrate),mean)
 rabund.4=melt(rabund.4, id="Group.1")
 
 
@@ -251,8 +319,10 @@ stack.16s.1=ggplot(rabund.1.10, aes(x=Group.1,y=value,group=variable,color=varia
   ylab("Relative Abundance")+
   xlab("Substrate")+
   theme_classic()
-#patternbar(rabund.1,x="Group.1",y="value",pattern.type = 'crosshatch',density="variable")
 stack.16s.1
+
+p=ggplot(rabund.1.10,aes())
+
 stack.16s.2=ggplot(rabund.2.10, aes(x=Group.1,y=value,group=variable,color=variable,fill=variable))+
   geom_bar(stat="identity",color="black")+
   ggtitle("170828")+
@@ -288,17 +358,282 @@ ggarrange(stack.16s.1,stack.16s.2,stack.16s.3,stack.16s.4,ncol=2,nrow=2,labels="
 
 Subset rabund stacked bars by date, four panel plot, each panel is sampling event.  There appear to be shifts in relatiev abundances over the course of the incubation.  Data aggregated at phylum level to enhance visibility.
 
-```{r NMDS plots,warning=FALSE,echo=FALSE}
 
-nmds.16=read.table(file="nbc16s.final.subsample.opti_mcc.thetayc.0.16.lt.nmds.axes.txt",header=T)
+```{r heatmap,warning=F,echo=F,fig.height=11,fig.width=8.5,fig.align="center"}
+theme_set(theme_gray(base_size = 12))
+bacteria.df.3=subset.data.frame(bacteria.df, taxlevel==3,drop=TRUE)
 
-nmds.16=separate(nmds.16,group,into=c("Date","Substrate"),sep=c(6))
-nmds.16=separate(nmds.16,Substrate,into=c("Substrate","Rep"),sep=c(-1))
-nmds.16=droplevels(nmds.16[-which(nmds.16$Substrate=='CR'),])
+sites=list(colnames(bacteria.df.3[,6:67])) #get list of samples
+#total=list(colnames(bacteria.df.3[,1]))
 
-nmds.theta.plot=ggplot(nmds.16,aes(x=axis1,y=axis2,color=Substrate,size=Date,shape=Date))+geom_point()+theme_classic()
-nmds.theta.plot
+
+rabund=function(sites){
+  r.abund=sites/bacteria.df.3$total
+  return(r.abund)
+}
+
+rabund.df=rabund(bacteria.df.3[,6:67])
+rabund.df=cbind(bacteria.df.3$taxon,rabund.df)
+
+
+rabund.df=melt(rabund.df,id.vars="bacteria.df.3$taxon")
+rabund.df=dcast(rabund.df,variable~bacteria.df.3$taxon)
+
+#rabund.df$variable=as.numeric(rabund.df$variable)
+rabund.df=separate(rabund.df,variable,into=c("junk","Date","Substrate"),sep=c(1,7))
+rabund.df=separate(rabund.df,Substrate,into=c("Substrate","Rep"),sep=c(-1))
+rabund.df$junk=NULL
+
+rabund.df=droplevels(rabund.df[-which(rabund.df$Substrate=='CR'),])
+rabund.df$Date=as.factor(rabund.df$Date)
+rabund.df$Date=revalue(rabund.df$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
+#rabund.df$Date=as.factor(rabund.df$Date)
+#rabund.df$Substrate=as.factor(rabund.df$Substrate)
+#rabund.df%>%
+ # group_by(Substrate,Date)%>%
+  #summarise_all(funs(mean,sd))
+#taxa=as.vector(colnames(rabund.df[,4:687]))
+#names(taxa)=c("taxa")
+
+
+rabund.h=aggregate(rabund.df[,4:79],list(rabund.df$Date,rabund.df$Substrate),mean)
+
+
+
+
+ 
+rabund.h=melt(rabund.h,id.vars=c("Group.1","Group.2"))
+rabund.h=rabund.h%>%
+  group_by(Group.1)%>%
+  arrange(Group.1,desc(value))%>%
+  slice(seq(n()*1))
+
+require(viridis)
+ggplot(rabund.h, aes(Group.1,variable,fill=1/-log(value)))+geom_tile()+
+  facet_wrap(~Group.2,nrow=1)+scale_fill_viridis(option="B")+
+  theme(#axis.text.x=element_text(angle=90),
+        axis.text=element_text(size=10),
+        axis.title=element_text(size=10),
+        legend.text=element_text(size=10))+
+  ylab("Class")+
+  xlab("Day of Incubation")
+  
+ggsave("hm.jpeg", device="jpeg", width=7, height=10,units="in")
+```
+
+
+```{r NMDS plots}
+
+env.df<- read.csv("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/env.df")
+env.drops=c("08/15/17","08/22/17","08/25/17","09/01/17","09/08/17","09/12/17")
+env.df=droplevels(env.df[!(env.df$Date.Sampled %in% env.drops),])
+env.c.drops=c("X","Date.Sampled","Sample","time","doy","width","xdepth","xvelocity",
+              "xtemp","xspc","Q")
+env.df.fit=env.df[ , !(names(env.df) %in% env.c.drops)]
+env.df.fac=env.df %>%
+  select(Date.Sampled, Sample)
+
+bacteria.df.sp=subset.data.frame(bacteria.df, taxlevel==4,drop=TRUE)
+
+drops <- c("taxlevel","rankID","daughterlevels","total","SDKC1","SDKC2","SDKC3")
+bacteria.df.sp=bacteria.df.sp[ , !(names(bacteria.df.sp) %in% drops)]
+
+bacteria.df.sp=melt(bacteria.df.sp,id.vars="taxon")
+bacteria.df.sp=dcast(bacteria.df.sp,variable~bacteria.df.sp$taxon)
+#rabund.df$variable=as.numeric(rabund.df$variable)
+bacteria.df.sp=separate(bacteria.df.sp,variable,into=c("junk","Date","Substrate"),sep=c(1,7))
+bacteria.df.sp=separate(bacteria.df.sp,Substrate,into=c("Substrate","Rep"),sep=c(-1))
+bacteria.df.sp$junk=NULL
+
+bacteria.df.sp=droplevels(bacteria.df.sp[-which(bacteria.df.sp$Substrate=='CR'),])
+bacteria.df.sp$Date=as.factor(bacteria.df.sp$Date)
+bacteria.df.sp$Date=revalue(bacteria.df.sp$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
+
+
+bacteria.df.sp=bacteria.df.sp[,4:130] #custome value
+bacteria.df.sps=bacteria.df.sp[rowSums(bacteria.df.sp)!=0,]
+#dropping KC results in some rows having zero taxa, remove those rows!
+
+
+
+ord.dist=vegdist(bacteria.df.sps)
+ord.nmds=metaMDS(ord.dist)
+ORD=data.frame(MDS1=ord.nmds$points[,1],MDS2=ord.nmds$points[,2])
+ORD=cbind(ORD,env.df.fac)
+
+fit=envfit(ord.nmds,env.df.fit,perm=999,na.rm=T,display="sites")
+fit
+fit.df=as.data.frame(fit$vectors$arrows*sqrt(fit$vectors$r))
+fit.df$species=rownames(fit.df)
+spp.scrs=as.data.frame(scores(fit,display="vectors"))
+spp.scrs=cbind(spp.scrs, Species=rownames(spp.scrs),fit$vectors$pvals)
+spp.scrs=setnames(spp.scrs, old=("fit$vectors$pvals"), new=c("pvals"))
+spp.scrs=spp.scrs[ which (spp.scrs$pvals<0.05),]
+
+ veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100) 
+  {
+    theta <- (0:npoints) * 2 * pi/npoints
+    Circle <- cbind(cos(theta), sin(theta))
+    t(center + scale * t(Circle %*% chol(cov)))
+ }
+df_ell <- data.frame()
+  for(g in levels(ORD$Sample)){
+    df_ell <- rbind(df_ell, cbind(as.data.frame(with(ORD[ORD$Sample==g,],
+                    veganCovEllipse(cov.wt(cbind(MDS1,MDS2),wt=rep(1/length(MDS1),length(MDS1)))$cov,center=c(mean(MDS1),mean(MDS2)))))
+                    ,group=g))
+  }
+
+ggplot(ORD)+
+  geom_point(mapping= aes(MDS1,MDS2,shape=Date.Sampled,color=Sample))+coord_fixed()+
+  geom_segment(data=spp.scrs, aes(x=0, xend=spp.scrs$NMDS1/5, y=0,yend=spp.scrs$NMDS2/5),
+               arrow=arrow(length=unit(.1, "cm")),color="red")+
+  geom_text(data = spp.scrs, aes(x = NMDS1/5, y = NMDS2/5, label = Species),
+            size = 3) +
+    geom_path(data=df_ell, aes(x=MDS1, y=MDS2,colour=group), size=1, linetype=2)+ggtitle("Bacterial Communities")
+
+scores(fit, "vectors")
+plot(ord.nmds)
+plot(fit, p.max=0.05, col="red")
+ord.nmds$stress
+
 
 ```
 
 NMDS calculated in MOTHUR and axes exported to R
+
+
+```{r ZIBR model, echo=F, warning=F}
+#devtools::install_github("chvlyl/ZIBR")
+library(ZIBR)
+theme_set(theme_classic(base_size = 18))
+bacteria.df.zibr=subset.data.frame(bacteria.df, taxlevel==6,drop=TRUE)
+
+sites=list(colnames(bacteria.df.zibr[,6:67])) #get list of samples
+total=list(colnames(bacteria.df.zibr[,1]))
+
+
+rabund=function(sites){
+  rabund=sites/bacteria.df.zibr$total
+  return(rabund)
+}
+
+rabund.df=rabund(bacteria.df.zibr[,6:67])
+rabund.df=cbind(bacteria.df.zibr$taxon,rabund.df)
+bacteria.df.zibr.tax=bacteria.df.zibr$taxon
+
+
+#rabund.df=dcast(melt(rabund.df,id.vars="bacteria.df.3$taxon"),variable~bacteria.df.3$taxon)
+bacteria.df.zibr=dcast(melt(rabund.df,id.vars="bacteria.df.zibr$taxon"),variable~bacteria.df.zibr.tax)
+#rabund.df$variable=as.numeric(rabund.df$variable)
+bacteria.df.zibr=separate(bacteria.df.zibr,variable,into=c("junk","Date","Substrate"),sep=c(1,7))
+bacteria.df.zibr=separate(bacteria.df.zibr,Substrate,into=c("Substrate","Rep"),sep=c(-1))
+bacteria.df.zibr$junk=NULL
+
+bacteria.df.zibr=droplevels(bacteria.df.zibr[-which(bacteria.df.zibr$Substrate=='CR'),])
+bacteria.df.zibr$Date=as.factor(bacteria.df.zibr$Date)
+bacteria.df.zibr$Date=revalue(bacteria.df.zibr$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
+
+zibr.fit=zibr(logistic.cov=data.frame(Treatment=bacteria.df.zibr$Substrate),
+              beta.cov=data.frame(Treatment=bacteria.df.zibr$Substrate),
+              Y=bacteria.df.zibr[,4:60],
+              time.ind=bacteria.df.zibr$Date)
+
+```
+
+```{r ANOSIM, echo=False, warning=F}
+
+
+bacteria.df.6=subset.data.frame(bacteria.df, taxlevel==6,drop=TRUE)
+drops=c("taxlevel","rankID","daughterlevels","total")
+bacteria.df.6=bacteria.df.6[,!(names(bacteria.df.6)%in% drops)]
+anosim.df=t(bacteria.df.6)
+anosim.df=as.data.frame(anosim.df)
+anosim.df[]=lapply(anosim.df,as.character)
+colnames(anosim.df)=anosim.df[1,]
+anosim.df=anosim.df[-1,]
+anosim.df=anosim.df%>%
+  rownames_to_column
+anosim.df[,2:686]=lapply(anosim.df[,2:686],function(x) as.numeric(as.character(x)))
+
+
+
+
+
+anosim.df=separate(anosim.df,rowname,into=c("junk","Date","Substrate"),sep=c(1,7))
+anosim.df=separate(anosim.df,Substrate,into=c("Substrate","Rep"),sep=c(-1))
+anosim.df$junk=NULL
+
+anosim.df=droplevels(anosim.df[-which(anosim.df$Substrate=='CR'),])
+anosim.df$Date=as.factor(anosim.df$Date)
+anosim.df$Substrate=as.factor(anosim.df$Substrate)
+anosim.df$Date=revalue(anosim.df$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
+
+
+anosim.3=subset(anosim.df, anosim.df$Date=="3")
+anosim.10=subset(anosim.df, anosim.df$Date=="10")
+anosim.21=subset(anosim.df, anosim.df$Date=="21")
+anosim.31=subset(anosim.df, anosim.df$Date=="31")
+#anosim.31=anosim.31[,colSums(anosim.31 !=0)>0]
+
+
+
+design.df=anosim.df[,1:3]
+design.3=anosim.3[,1:3]
+design.10=anosim.3[,1:3]
+design.21=anosim.3[,1:3]
+design.31=anosim.3[,1:3]
+
+anosim.df$Date=NULL
+anosim.df$Substrate=NULL
+anosim.df$Rep=NULL
+
+
+
+anosim.3$Date=NULL
+anosim.3$Substrate=NULL
+anosim.3$Rep=NULL
+
+anosim.10$Date=NULL
+anosim.10$Substrate=NULL
+anosim.10$Rep=NULL
+
+anosim.21$Date=NULL
+anosim.21$Substrate=NULL
+anosim.21$Rep=NULL
+
+anosim.31$Date=NULL
+anosim.31$Substrate=NULL
+anosim.31$Rep=NULL
+
+
+bac.dist=vegdist(anosim.df)
+bac.ano=anosim(bac.dist,design.df$Substrate)
+summary(bac.ano)
+
+
+
+
+
+
+adonis(anosim.df~Substrate*Date,data=design.df)
+
+pairwise.adonis(anosim.3,factors=design.3$Substrate, 
+                sim.method = 'bray', 
+                p.adjust.m ='bonferroni')
+pairwise.adonis(anosim.10,factors=design.10$Substrate, 
+                sim.method = 'bray', 
+                p.adjust.m ='bonferroni')
+pairwise.adonis(anosim.21,factors=design.21$Substrate, 
+                sim.method = 'bray', 
+                p.adjust.m ='bonferroni')
+pairwise.adonis(anosim.31,factors=design.31$Substrate, 
+                sim.method = 'bray', 
+                p.adjust.m ='bonferroni')
+
+
+pairwise.adonis(anosim.df,factors=design.df$Substrate, 
+                sim.method = 'bray', 
+                p.adjust.m ='bonferroni')
+
+```
+
