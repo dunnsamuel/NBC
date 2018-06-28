@@ -1,0 +1,19 @@
+"V1"	"V2"	"V3"	"V4"	"V5"
+"Group.1"	"F"	"H"	"SH"	"SO"	"T"
+"Acidimicrobiia"	NA	"0.001745201"	NA	"0.020942408"	"0.015706806"
+"Alphaproteobacteria"	"0.022704042"	"0.004537711"	"0.026818440"	"0.032145991"	"0.014103557"
+"Bacteria_unclassified"	"0.014016375"	"0.003948515"	NA	NA	NA
+"Bacteroidia"	"0.016330878"	"0.003816455"	"0.018638502"	NA	"0.012780687"
+"Chlamydiae"	NA	NA	NA	NA	"0.08333333"
+"Cyanobacteria_unclassified"	NA	"0.01542834"	"0.01218027"	NA	"0.01461632"
+"Deltaproteobacteria"	"0.018372703"	"0.006749156"	"0.021747282"	"0.029996250"	"0.027371579"
+"Gammaproteobacteria"	"0.010145447"	"0.001705519"	"0.013907153"	NA	NA
+"Lentisphaerae_unclassified"	"0.01041667"	NA	NA	"0.02083333"	"0.02083333"
+"Lentisphaeria"	NA	NA	"0.03703704"	"0.01851852"	NA
+"Oligosphaeria"	"0.02380952"	NA	"0.02380952"	"0.05952381"	NA
+"Oxyphotobacteria"	"0.01327766"	"0.02081994"	"0.01182453"	NA	"0.01625980"
+"Patescibacteria_unclassified"	NA	NA	NA	"0.02083333"	NA
+"Planctomycetacia"	"0.023408482"	"0.005528202"	"0.030491492"	"0.027381878"	"0.017448389"
+"Planctomycetes_unclassified"	NA	NA	NA	"0.08333333"	NA
+"Proteobacteria_unclassified"	"0.036372696"	"0.008470354"	"0.023916293"	"0.031390135"	"0.039860488"
+"Verrucomicrobiae"	"0.011473749"	"0.006518675"	"0.012795102"	"0.024026603"	"0.017684109"

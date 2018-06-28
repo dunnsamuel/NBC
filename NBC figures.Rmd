@@ -28,7 +28,7 @@ attach(substrate.plot.cv)
 substrate.plot.cv
 ```
 
-```{r fig.height=8.5,fig.width=8.5,message=FALSE}
+```{r fig.height=6.5,fig.width=10.5,message=FALSE}
 bar.df=melt(metabolism.data,id.vars=c("time","Sample"),measure.vars = c("GPP","Resp","NEP","GPP_OD","NEP_OD","Resp_OD"),na.rm=TRUE)
 head(bar.df)
 bar.sum=summarySE(bar.df,measurevar="value",groupvars = c("time","variable","Sample"),na.rm=TRUE)
@@ -44,7 +44,10 @@ gpp.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=Sample))+
                 stat="identity",width=.15,na.rm=T)+
   scale_x_continuous(breaks=seq(0,30,5))+
   ylab(bquote(atop('GPP', 'mg O'[2]~''~cm^-2~''~hr^-1)))+
-  xlab(NULL)+theme(legend.position =c(0.15,0.75),legend.title=element_blank())+
+  xlab(NULL)+theme(legend.position =c(0.15,0.75),legend.title=element_blank(),
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14))+
   annotate("text",x=-1,y=1, label="paste(bold(a))",parse=T)
 
 resp.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=Sample))+
@@ -56,7 +59,10 @@ resp.bar.plot=ggplot(bar.sum,aes(time,group=Sample,shape=Sample))+
                 stat="identity",width=.15,na.rm=T)+
   scale_x_continuous(breaks=seq(0,30,5),position="top")+
   ylab(bquote(atop('Respiration','mg O'[2]~''~cm^-2~''~hr^-1)))+
-  xlab(NULL)+theme(legend.position =  'none',legend.title=element_blank())+
+  xlab(NULL)+theme(legend.position =  'none',legend.title=element_blank(),
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14))+
   annotate("text",x=-1,y=0, label="paste(bold(b))",parse=T)
 
 
@@ -69,7 +75,10 @@ nep.bar.plot=ggplot(bar.sum,aes(time,shape=Sample,group=Sample))+
                 stat="identity",width=.15,na.rm=T)+scale_x_continuous(breaks=seq(0,30,5))+
   ylab(bquote(atop('NEP','mg O'[2]~''~cm^-2~''~hr^-1)))+xlab("Days of Incubation")+
   scale_y_continuous(breaks=seq(-1,1,0.5))+
-  theme(legend.position = 'none',legend.title=element_blank())+
+  theme(legend.position = 'none',legend.title=element_blank(),
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14))+
   annotate("text",x=-1,y=1, label="paste(bold(c))",parse=T)
 
 stacked.bar=ggarrange(gpp.bar.plot+theme(axis.text.x=element_blank()),
@@ -181,10 +190,16 @@ dens.plot
 #ggsave("discharge.jpeg",device="jpeg",width=6.5,height=6.5,units="in")
 
 
-ggarrange(td.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank()),
-          chem.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank()),
+ggarrange(td.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank(),
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14)),
+          chem.plot+theme(axis.text.x=element_blank(),axis.title.x = element_blank(), axis.ticks.x=element_blank(),
+        axis.text=element_text(size=16),
+        axis.title=element_text(size=16),
+        legend.text=element_text(size=14)),
           field.plot,nrow=3,align="v", widths=c(1,1,1))
-#grid.draw(rbind(ggplotGrob(td.plot),ggplotGrob(field.plot),size="last"))
+#grid.draw(rbind(ggplotGrob(td.plot),ggplotGrob(field.plot),size="last")) 
 #ggsave("Qtemppar.jpeg",device="jpeg",width=6.5,height=6.5, units="in")
 ```
 

@@ -42,6 +42,7 @@ library(data.table)
 library(devtools)
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
+library(gplots)
 #bacteria.df=subset.data.frame(bacteria.df, taxlevel=3) #select for genus level sequences
 theme_set(theme_gray(base_size = 18))
 pd=position_dodge(width=0.4)
@@ -51,7 +52,7 @@ design.file=as.data.frame(design.file)
 design.file=t(design.file)
 design.file=as.data.frame(design.file)
 
-design.file=separate(design.file,'colnames(bacteria.df)',into=c("x","Group"),sep=c(1))
+design.file=separate(design.file,colnames("bacteria.df"),into=c("x","Group"),sep=c(1))
 design.file$x=NULL
 design.file=separate(design.file,Group,into=c("Date","Substrate"),sep=c(6),remove=FALSE)
 design.file=separate(design.file,Substrate,into=c("Substrate","Rep"),sep=c(-1))
@@ -635,5 +636,36 @@ pairwise.adonis(anosim.df,factors=design.df$Substrate,
                 sim.method = 'bray', 
                 p.adjust.m ='bonferroni')
 
+```
+
+
+```{r Venn Diagrams}
+bacteria.df.6=subset.data.frame(bacteria.df, taxlevel==6,drop=TRUE)
+drops=c("taxlevel","rankID","daughterlevels","total")
+bacteria.df.6=bacteria.df.6[,!(names(bacteria.df.6)%in% drops)]
+venn.df=t(bacteria.df.6)
+venn.df=as.data.frame(venn.df)
+v.names=rownames(venn.df)
+rownames(venn.df)=NULL
+venn.df=cbind(v.names,venn.df)
+colnames(venn.df)=as.character(unlist(venn.df[1,]))
+venn.df=venn.df[-1,]
+names(venn.df)[1]="Sample"
+taxa.names=list(colnames(venn.df))
+sample.names=list(venn.df[,1])
+
+binary.tax="initialize"
+binary.tax=for i in seq_along(sample.names){
+  for j in seq_along(taxa.names){
+    if ([i,j]>0){
+      binary.tax[i,j]=paste0
+    }
+  }
+}
+
+test=apply(venn.df,1,function(x) which(x>0))
+
+venn.test=cbind(venn.df$Sample,as.character(test))
+venn.test=as.data.frame(venn.test)
 ```
 
