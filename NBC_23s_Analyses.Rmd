@@ -1,5 +1,5 @@
 ---
-title: "NBC 23s Analyses.`r format(Sys.time(), '%d %B, %Y')`"
+title: "NBC 23s Analyses"
 author: "Sam Dunn"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
@@ -388,8 +388,8 @@ These are all pretty graphs so far, but you haven't answered the question!  Are 
 
 What's better is that ANOSIM is fully compatible with NMDS plots (the following code chunk)  So we can quantify differences between our treatment combinations and then plot them cleanly using NMDS!
 
-```{r,ANOSIM}
-
+```{r ANOSIM}
+#https://sites.google.com/site/mb3gustame/hypothesis-tests/anosim
 algae.df.6=subset.data.frame(algae.df, taxlevel==6,drop=TRUE)
 drops=c("taxlevel","rankID","daughterlevels","total")
 algae.df.6=algae.df.6[,!(names(algae.df.6)%in% drops)]
@@ -557,12 +557,16 @@ ggplot(ORD)+
 
 
 #This section should really be its own chunk.  betadisper compares the area of the collected nmds points for each group you specifiy and compares it to your other group areas (a la anova)
+
+#http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/betadisper.html
 disp.Sample=betadisper(ord.dist,ORD$Sample)
 disp.Date=betadisper(ord.dist,ORD$Date.Sampled)
 perm.date=permutest(disp.Date, pairwise=TRUE,permutations=10000) 
 TukeyHSD(disp.Sample) #compaitble with tukeyhsd for pairwise comparions!
 perm.sample=permutest(disp.Sample, pairwise=TRUE,permutations=10000)
 TukeyHSD(disp.Date)
+disp.Sample
+disp.Date
 #test pairwise comparions between groups in nmds
 
 scores(fit, "vectors")
