@@ -15,30 +15,36 @@ Load data from the mothur outptu file and load packages needed for data manipula
 ```{r Load Data, include=FALSE,echo=FALSE,warning=FALSE}
 rm(list = ls(all = TRUE))
 algae.df<- read.delim("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/nbc23s.final.subsample.tax.summary")
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
 
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
 
-library(vegan)
-library(VennDiagram)
-library(RAM)
-library(tidyr)
-library(Rmisc)
-library(reshape)
-library(reshape2)
-library(tidyr)
-library(gapminder)
-library(magrittr)
-library(dplyr)
-library(ggpubr)
-library(gridExtra)
-library(patternplot)
-library(tibble)
-library(broom)
-library(data.table)
-library(devtools)
-library(gdata)
-library(gplots)
+# usage
+packages <- c("ggplot2", 
+              "plyr", 
+              "reshape2", 
+              "RColorBrewer", 
+              "scales", 
+              "grid",
+              "VennDiagram",
+              "vegan",
+              "RAM",
+              "tidyr",
+              "Rmisc",
+              "reshape","reshape2",
+              "gapminder","magrittr","dplyr","ggpubr","gridExtra","
+              patternplot","tibble","gplots","broom","data.table","devtools")
+ipak(packages)
+
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
+
 theme_set(theme_gray(base_size = 18))
 pd=position_dodge(width=0.4)
 

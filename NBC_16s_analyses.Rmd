@@ -17,26 +17,33 @@ This is the grpahing and statistical analyses for the 16s sequences collected fo
 ```{r Load Data, include=FALSE,echo=FALSE,warning=FALSE}
 rm(list = ls(all = TRUE))
 bacteria.df=read.csv("nbc16s.final.subsample.tax.summary.csv")
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
 
-library(VennDiagram)
-library(vegan)
-library(RAM)
-library(tidyr)
-library(Rmisc)
-library(reshape)
-library(reshape2)
-library(tidyr)
-library(gapminder)
-library(magrittr)
-library(dplyr)
-library(ggpubr)
-library(gridExtra)
-library(patternplot)
-library(tibble)
-library(gplots)
-library(broom)
-library(data.table)
-library(devtools)
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("ggplot2", 
+              "plyr", 
+              "reshape2", 
+              "RColorBrewer", 
+              "scales", 
+              "grid",
+              "VennDiagram",
+              "vegan",
+              "RAM",
+              "tidyr",
+              "Rmisc",
+              "reshape","reshape2",
+              "gapminder","magrittr","dplyr","ggpubr","gridExtra","
+              patternplot","tibble","gplots","broom","data.table","devtools")
+ipak(packages)
+
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
 theme_set(theme_gray(base_size = 18))
