@@ -3,25 +3,25 @@ title: "NBC 23s Analyses"
 author: "Sam Dunn"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  word_document: default
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
+  word_document: default
 ---
 This workthrough uses the mothur output file egenrated by following the mothur  MiSeq SOP. 
 
 
 Load data from the mothur outptu file and load packages needed for data manipulation, analysis,and visulaization.
 ```{r Load Data, include=FALSE,echo=FALSE,warning=FALSE}
-rm(list = ls(all = TRUE))
-algae.df<- read.delim("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/nbc23s.final.subsample.tax.summary")
+#rm(list = ls(all = TRUE))
+algae.df<- read.delim("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/North Branch Biofilms/nbc23s.final.subsample.tax.summary")
 # ipak function: install and load multiple R packages.
 # check to see if packages are installed. Install them if they are not, then load them into the R session.
 
 ipak <- function(pkg){
     new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
     if (length(new.pkg)) 
-        install.packages(new.pkg, dependencies = TRUE)
+        install.packages(new.pkg, dependencies = TRUE, repos='http://cran.us.r-project.org')
     sapply(pkg, require, character.only = TRUE)
 }
 
@@ -110,7 +110,7 @@ shannon.div.summary=summarySE(shannon.df,measurevar="value",groupvars=c("Date","
 shannon.even.summary=summarySE(shannon.df,measurevar="pielou",groupvars=c("Date","Substrate"),na.rm=TRUE)
 
 #figure
-shannon.div=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate,fill=Substrate))+
+shannon.div.alg=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate,fill=Substrate))+
   geom_point(position=pd,size=4)+geom_line(aes(linetype=Substrate),position=pd)+
   geom_errorbar(aes(ymin=value-se,ymax=value+se),width=0.3,position=pd)+ylab("Shannon Diversity (H')")+
   theme_classic()+
@@ -120,8 +120,9 @@ shannon.div=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape
         axis.text=element_text(size=16),
         axis.title=element_text(size=16),
         legend.text=element_text(size=14))+
-  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25,26))
-shannon.div
+  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25,26))+ggtitle("Algal Communities")+
+  scale_y_continuous(breaks=seq(0,5,0.5))
+shannon.div.alg
 
 ```
 
@@ -485,14 +486,17 @@ pairwise.adonis(anosim.df,factors=design.df$Substrate,
 
 So we know whetehr our sample communities differ or not, but now we want to explain these differences (or lack thereof).  How do we bring our non-community environmental data?  We will use the envfit function in vegan to do this!  Envfit takes your community distance matrices and looks for correlations with a similarlys tructured dataset.  Your data sets (community and env) need to be the same size and not contain missing values for this to work.
 ```{r Envfit}
-env.df<- read.csv("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/env.df") #env data from my study.
-env.drops=c("08/15/17","08/22/17","08/25/17","09/01/17","09/08/17","09/12/17") #trimmign sample dates where I didn't sequence
+env.df<- read.csv("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/env.df.csv") #env data from my study.
+env.drops=c("8/15/2017","8/22/2017","8/25/2017","9/1/2017","9/8/2017","9/12/2017") #trimmign sample dates where I didn't sequence
 env.df=droplevels(env.df[!(env.df$Date.Sampled %in% env.drops),])
+colnames(env.df)=c("Date_Sampled","Substrate","NEP","GPP","Respiration","BG-ase","NAG-ase","P-ase",
+                   "Chl.a","Biomass","Day of Incubation","SRP","NO3","NH4","doy","width","xdepth","xvelocity",
+              "xtemp","xspc","Q")
 env.c.drops=c("X","Date.Sampled","Sample","time","doy","width","xdepth","xvelocity",
               "xtemp","xspc","Q") #droppign some unrelated data...can always add them back by removing them from this list
 env.df.fit=env.df[ , !(names(env.df) %in% env.c.drops)]
 env.df.fac=env.df %>%
-  select(Date.Sampled, Sample)
+  select(Date_Sampled, Substrate)
 
 algae.df.sp=subset.data.frame(algae.df, taxlevel==4,drop=TRUE)
 
@@ -518,19 +522,19 @@ algae.df.sps=algae.df.sps[rowSums(algae.df.sps)!=0,]
 algae.df.env=algae.df.sp[,1:2]
  #god thats a lot fo data munging...I know I've done this in toher chunks but I want each chunk to stand on its own if need be.
 
-ord.dist=vegdist(algae.df.sps) #get distances
-ord.nmds=metaMDS(ord.dist) #run nmds
-ORD=data.frame(MDS1=ord.nmds$points[,1],MDS2=ord.nmds$points[,2]) #exrtact nmds coordinates
-ORD=cbind(ORD,env.df.fac) #combine nmds coordinates with env data
+alg.ord.dist=vegdist(algae.df.sps) #get distances
+alg.ord.nmds=metaMDS(alg.ord.dist) #run nmds
+alg.ORD=data.frame(MDS1=alg.ord.nmds$points[,1],MDS2=alg.ord.nmds$points[,2]) #exrtact nmds coordinates
+alg.ORD=cbind(alg.ORD,env.df.fac) #combine nmds coordinates with env data
 
-fit=envfit(ord.nmds,env.df.fit,perm=999,na.rm=T,display="sites") #correlate you nmds coordintes with env data  Higher perm number means mroe sensitive p value
-fit
-fit.df=as.data.frame(fit$vectors$arrows*sqrt(fit$vectors$r))
-fit.df$species=rownames(fit.df)
-spp.scrs=as.data.frame(scores(fit,display="vectors"))
-spp.scrs=cbind(spp.scrs, Species=rownames(spp.scrs),fit$vectors$pvals)
-spp.scrs=setnames(spp.scrs, old=("fit$vectors$pvals"), new=c("pvals"))
-spp.scrs=spp.scrs[ which (spp.scrs$pvals<0.05),] #select only significant covariates
+alg.fit=envfit(alg.ord.nmds,env.df.fit,perm=999,na.rm=T,display="sites") #correlate you nmds coordintes with env data  Higher perm number means mroe sensitive p value
+alg.fit
+alg.fit.df=as.data.frame(alg.fit$vectors$arrows*sqrt(alg.fit$vectors$r))
+alg.fit.df$species=rownames(alg.fit.df)
+alg.spp.scrs=as.data.frame(scores(alg.fit,display="vectors"))
+alg.spp.scrs=cbind(alg.spp.scrs, Species=rownames(alg.spp.scrs),alg.fit$vectors$pvals)
+alg.spp.scrs=setnames(alg.spp.scrs, old=("alg.fit$vectors$pvals"), new=c("alg.pvals"))
+alg.spp.scrs=alg.spp.scrs[ which (alg.spp.scrs$alg.pvals<0.05),] #select only significant covariates
 
  veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100) #custome functio to calculate ellipses for plotting in ggplot
   {
@@ -538,21 +542,21 @@ spp.scrs=spp.scrs[ which (spp.scrs$pvals<0.05),] #select only significant covari
     Circle <- cbind(cos(theta), sin(theta))
     t(center + scale * t(Circle %*% chol(cov)))
  }
-df_ell <- data.frame()
-  for(g in levels(ORD$Sample)){
-    df_ell <- rbind(df_ell, cbind(as.data.frame(with(ORD[ORD$Sample==g,],
+alg.df_ell <- data.frame()
+  for(g in levels(alg.ORD$Substrate)){
+   alg.df_ell <- rbind(alg.df_ell, cbind(as.data.frame(with(alg.ORD[alg.ORD$Substrate==g,],
                     veganCovEllipse(cov.wt(cbind(MDS1,MDS2),wt=rep(1/length(MDS1),length(MDS1)))$cov,center=c(mean(MDS1),mean(MDS2)))))
                     ,group=g))
   }
 
-ggplot(ORD)+
-  geom_point(mapping= aes(MDS1,MDS2,shape=Date.Sampled,color=Sample))+coord_fixed()+
-  geom_segment(data=spp.scrs, aes(x=0, xend=spp.scrs$NMDS1/5, y=0,yend=spp.scrs$NMDS2/5),
+alg.nmds=ggplot(alg.ORD)+
+  geom_point(mapping= aes(MDS1,MDS2,shape=Date_Sampled,color=Substrate))+coord_fixed(ratio=1)+
+  geom_segment(data=alg.spp.scrs, aes(x=0, xend=alg.spp.scrs$NMDS1/3, y=0,yend=alg.spp.scrs$NMDS2/3),
                arrow=arrow(length=unit(0.1, "cm")),color="red")+
-  geom_text(data = spp.scrs, aes(x = NMDS1/5, y = NMDS2/5, label = Species),
+  geom_text(data = alg.spp.scrs, aes(x = NMDS1/3.5, y = NMDS2/3.5, label = Species),
             size = 3) +
-    geom_path(data=df_ell, aes(x=MDS1, y=MDS2,colour=group), size=1, linetype=2)+ggtitle("Algal Communities")+theme_classic() #I adjuested the length of the arrows (NMDS1/5, etc) so they woudl fit better int he plot.  This is purely for aesthtetic pruposes
-
+    geom_path(data=alg.df_ell, aes(x=MDS1, y=MDS2,colour=group), size=1, linetype=2)+ggtitle("Algal Communities")+theme_classic()+xlim(-0.5,0.5)+ylim(-0.5,0.5) #I adjuested the length of the arrows (NMDS1/5, etc) so they woudl fit better int he plot.  This is purely for aesthtetic pruposes
+alg.nmds
 
 
 ggplot(ORD)+
@@ -616,17 +620,27 @@ algae.df.venn$Date=as.factor(algae.df.venn$Date)
 algae.df.venn$Date=revalue(algae.df.venn$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
 
 Hard=colnames(algae.df.venn[algae.df.venn$Substrate=="H",apply(algae.df.venn[algae.df.venn$Substrate=="H",],MARGIN=2,function(x) any(x>0))])
+Hard=Hard[-(1:3)]
 
 Soft=colnames(algae.df.venn[algae.df.venn$Substrate=="SO",apply(algae.df.venn[algae.df.venn$Substrate=="SO",],MARGIN=2,function(x) any(x>0))])
+Soft=Soft[-(1:3)]
 
 Sheet=colnames(algae.df.venn[algae.df.venn$Substrate=="SH",apply(algae.df.venn[algae.df.venn$Substrate=="SH",],MARGIN=2,function(x) any(x>0))])
+Sheet=Sheet[-(1:3)]
 
 Foam=colnames(algae.df.venn[algae.df.venn$Substrate=="F",apply(algae.df.venn[algae.df.venn$Substrate=="F",],MARGIN=2,function(x) any(x>0))])
+Foam=Foam[-(1:3)]
 
 Tile=colnames(algae.df.venn[algae.df.venn$Substrate=="T",apply(algae.df.venn[algae.df.venn$Substrate=="T",],MARGIN=2,function(x) any(x>0))])
+Tile=Tile[-(1:3)]
+library(UpSetR)
+comparions=list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile)
 
-venn(list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile))
 
+alg.venn.list=list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile)
+alg.venn=gList(venn.diagram(x=alg.venn.list,filename=NULL,main="Algal Communities",main.fontface = 2,label=TRUE,fill=c("yellow","blue","green","red","purple"),
+                            cat.cex=0.8,cat.fontface=2,lty=1,main.pos=c(0.15,1),
+                            cat.just=list(c(0.6,1) , c(0,0) , c(0,0) , c(1,1) ,c(1,0))))
 ```
 
 

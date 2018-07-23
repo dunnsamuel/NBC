@@ -15,7 +15,7 @@ This is the grpahing and statistical analyses for the 16s sequences collected fo
 ####
 
 ```{r Load Data, include=FALSE,echo=FALSE,warning=FALSE}
-rm(list = ls(all = TRUE))
+#rm(list = ls(all = TRUE))
 bacteria.df=read.csv("nbc16s.final.subsample.tax.summary.csv")
 # ipak function: install and load multiple R packages.
 # check to see if packages are installed. Install them if they are not, then load them into the R session.
@@ -23,7 +23,7 @@ bacteria.df=read.csv("nbc16s.final.subsample.tax.summary.csv")
 ipak <- function(pkg){
     new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
     if (length(new.pkg)) 
-        install.packages(new.pkg, dependencies = TRUE)
+        install.packages(new.pkg, dependencies = TRUE, repos='http://cran.us.r-project.org')
     sapply(pkg, require, character.only = TRUE)
 }
 
@@ -38,10 +38,9 @@ packages <- c("ggplot2",
               "vegan",
               "RAM",
               "tidyr",
-              "Rmisc",
+              "Rmisc","glue",
               "reshape","reshape2",
-              "gapminder","magrittr","dplyr","ggpubr","gridExtra","
-              patternplot","tibble","gplots","broom","data.table","devtools")
+              "gapminder","magrittr","dplyr","ggpubr","gridExtra","patternplot","tibble","gplots","broom","data.table","devtools")
 ipak(packages)
 
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
@@ -99,7 +98,7 @@ shannon.df$Date=revalue(shannon.df$Date,c("170818"="3","170828"="10","170905"="2
 shannon.div.summary=summarySE(shannon.df,measurevar="value",groupvars=c("Date","Substrate"),na.rm=TRUE)
 shannon.even.summary=summarySE(shannon.df,measurevar="pielou",groupvars=c("Date","Substrate"),na.rm=TRUE)
 
-shannon.div=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate,fill=Substrate))+
+shannon.div.16s=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape=Substrate,fill=Substrate))+
   geom_point(position=pd,size=4)+geom_line(aes(linetype=Substrate),position=pd)+
   geom_errorbar(aes(ymin=value-se,ymax=value+se),width=0.3,position=pd)+ylab("Shannon Diversity (H')")+
   theme_classic()+
@@ -109,8 +108,9 @@ shannon.div=ggplot(shannon.div.summary, aes(x=Date,y=value,group=Substrate,shape
         axis.text=element_text(size=16),
         axis.title=element_text(size=16),
         legend.text=element_text(size=14))+
-  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25))
-shannon.div
+  scale_shape_manual(name="Substrate",values=c(21,22,23,24,25))+ggtitle("Bacterial Communities")+
+  scale_y_continuous(breaks=seq(0,5,0.1))
+shannon.div.16s
 
 
 #geom_bar(stat="identity",position=position_dodge(0.9))+
@@ -399,14 +399,20 @@ ggsave("hm.jpeg", device="jpeg", width=7, height=10,units="in")
 
 ```{r Envfit plots,warning=FALSE,echo=FALSE}
 
-env.df<- read.csv("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/env.df")
-env.drops=c("08/15/17","08/22/17","08/25/17","09/01/17","09/08/17","09/12/17")
-env.df=droplevels(env.df[!(env.df$Date.Sampled %in% env.drops),])
+env.df <- read.csv("C:/Users/sdunn3/Google Drive/North Branch Chicago Data/NBC/env.df.csv")
+env.drops=c("8/15/2017","8/22/2017","8/25/2017","9/1/2017","9/8/2017","9/12/2017") #beware of date format shifts in excel!!
+env.df=droplevels(env.df[!(env.df$Date.Sampled %in% env.drops),],drop=TRUE)
+colnames(env.df)=c("Date_Sampled","Substrate","NEP","GPP","Respiration","BG-ase","NAG-ase","P-ase",
+                   "Chl.a","Biomass","Day of Incubation","SRP","NO3","NH4","doy","width","xdepth","xvelocity",
+              "xtemp","xspc","Q")
+
 env.c.drops=c("X","Date.Sampled","Sample","time","doy","width","xdepth","xvelocity",
               "xtemp","xspc","Q")
 env.df.fit=env.df[ , !(names(env.df) %in% env.c.drops)]
+
 env.df.fac=env.df %>%
-  select(Date.Sampled, Sample)
+  select(Date_Sampled, Substrate)
+
 
 bacteria.df.sp=subset.data.frame(bacteria.df, taxlevel==4,drop=TRUE)
 
@@ -431,19 +437,20 @@ bacteria.df.sps=bacteria.df.sp[rowSums(bacteria.df.sp)!=0,]
 
 
 
-ord.dist=vegdist(bacteria.df.sps)
-ord.nmds=metaMDS(ord.dist)
-ORD=data.frame(MDS1=ord.nmds$points[,1],MDS2=ord.nmds$points[,2])
-ORD=cbind(ORD,env.df.fac)
+bac.ord.dist=vegdist(bacteria.df.sps)
+bac.ord.nmds=metaMDS(bac.ord.dist)
+bac.ORD=data.frame(MDS1=bac.ord.nmds$points[,1],MDS2=bac.ord.nmds$points[,2])
+bac.ORD=cbind(bac.ORD,env.df.fac)
 
-fit=envfit(ord.nmds,env.df.fit,perm=999,na.rm=T,display="sites")
-fit
-fit.df=as.data.frame(fit$vectors$arrows*sqrt(fit$vectors$r))
-fit.df$species=rownames(fit.df)
-spp.scrs=as.data.frame(scores(fit,display="vectors"))
-spp.scrs=cbind(spp.scrs, Species=rownames(spp.scrs),fit$vectors$pvals)
-spp.scrs=setnames(spp.scrs, old=("fit$vectors$pvals"), new=c("pvals"))
-spp.scrs=spp.scrs[ which (spp.scrs$pvals<0.05),]
+bac.fit=envfit(bac.ord.nmds,env.df.fit,perm=999,na.rm=T,display="sites")
+bac.fit
+bac.fit.df=as.data.frame(bac.fit$vectors$arrows*sqrt(bac.fit$vectors$r))
+bac.fit.df$species=rownames(bac.fit.df)
+bac.spp.scrs=as.data.frame(scores(bac.fit,display="vectors"))
+bac.spp.scrs=cbind(bac.spp.scrs, Species=rownames(bac.spp.scrs),bac.fit$vectors$pvals)
+bac.spp.scrs=setnames(bac.spp.scrs, old=("bac.fit$vectors$pvals"), new=c("bac.pvals"))
+bac.spp.scrs=bac.spp.scrs[ which (bac.spp.scrs$bac.pvals<0.05),]
+
 
  veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100) 
   {
@@ -451,20 +458,21 @@ spp.scrs=spp.scrs[ which (spp.scrs$pvals<0.05),]
     Circle <- cbind(cos(theta), sin(theta))
     t(center + scale * t(Circle %*% chol(cov)))
  }
-df_ell <- data.frame()
-  for(g in levels(ORD$Sample)){
-    df_ell <- rbind(df_ell, cbind(as.data.frame(with(ORD[ORD$Sample==g,],
+bac.df_ell <- data.frame()
+  for(g in levels(bac.ORD$Substrate)){
+    bac.df_ell <- rbind(bac.df_ell, cbind(as.data.frame(with(bac.ORD[bac.ORD$Substrate==g,],
                     veganCovEllipse(cov.wt(cbind(MDS1,MDS2),wt=rep(1/length(MDS1),length(MDS1)))$cov,center=c(mean(MDS1),mean(MDS2)))))
                     ,group=g))
   }
 
-ggplot(ORD)+
-  geom_point(mapping= aes(MDS1,MDS2,shape=Date.Sampled,color=Sample))+coord_fixed()+
-  geom_segment(data=spp.scrs, aes(x=0, xend=spp.scrs$NMDS1/5, y=0,yend=spp.scrs$NMDS2/5),
+bac.nmds=ggplot(bac.ORD)+
+  geom_point(mapping= aes(MDS1,MDS2,shape=Date_Sampled,color=Substrate))+coord_fixed(ratio=1)+
+  geom_segment(data=bac.spp.scrs, aes(x=0, xend=bac.spp.scrs$NMDS1/4, y=0,yend=bac.spp.scrs$NMDS2/4),
                arrow=arrow(length=unit(.1, "cm")),color="red")+
-  geom_text(data = spp.scrs, aes(x = NMDS1/5, y = NMDS2/5, label = Species),
+  geom_text(data = bac.spp.scrs, aes(x = NMDS1/4.5, y = NMDS2/4.5, label = Species),
             size = 3) +
-    geom_path(data=df_ell, aes(x=MDS1, y=MDS2,colour=group), size=1, linetype=2)+ggtitle("Bacterial Communities")+theme_classic()
+    geom_path(data=bac.df_ell, aes(x=MDS1, y=MDS2,colour=group), size=1, linetype=2)+ggtitle("Bacterial Communities")+theme_classic()+labs(shape="Date Sampled", color="Substrate")+xlim(-0.3,0.3)+ylim(-0.3,0.3)
+bac.nmds
 
 scores(fit, "vectors")
 plot(ord.nmds)
@@ -496,7 +504,7 @@ disp.Date
 NMDS calculated in MOTHUR and axes exported to R
 
 
-```{r ANOSIM, echo=False, warning=F}
+```{r PERMANOVA, echo=FALSE, warning=FALSE}
 
 
 bacteria.df.6=subset.data.frame(bacteria.df, taxlevel==6,drop=TRUE)
@@ -618,16 +626,28 @@ bacteria.df.venn$Date=as.factor(bacteria.df.venn$Date)
 bacteria.df.venn$Date=revalue(bacteria.df.venn$Date,c("170818"="3","170828"="10","170905"="21","170915"="31"))
 
 Hard=colnames(bacteria.df.venn[bacteria.df.venn$Substrate=="H",apply(bacteria.df.venn[bacteria.df.venn$Substrate=="H",],MARGIN=2,function(x) any(x>0))])
+Hard=Hard[-(1:3)]
 
 Soft=colnames(bacteria.df.venn[bacteria.df.venn$Substrate=="SO",apply(bacteria.df.venn[bacteria.df.venn$Substrate=="SO",],MARGIN=2,function(x) any(x>0))])
+Soft=Soft[-(1:3)]
 
 Sheet=colnames(bacteria.df.venn[bacteria.df.venn$Substrate=="SH",apply(bacteria.df.venn[bacteria.df.venn$Substrate=="SH",],MARGIN=2,function(x) any(x>0))])
+Sheet=Sheet[-(1:3)]
 
 Foam=colnames(bacteria.df.venn[bacteria.df.venn$Substrate=="F",apply(bacteria.df.venn[bacteria.df.venn$Substrate=="F",],MARGIN=2,function(x) any(x>0))])
+Foam=Foam[-(1:3)]
 
 Tile=colnames(bacteria.df.venn[bacteria.df.venn$Substrate=="T",apply(bacteria.df.venn[bacteria.df.venn$Substrate=="T",],MARGIN=2,function(x) any(x>0))])
+Tile=Tile[-(1:3)]
 
-venn(list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile))
+comparions=list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile)
+upset(fromList(comparions),order.by="freq",cutoff = 2)
+bac.venn.list=list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile)
+bac.venn=gList(venn.diagram(x=bac.venn.list,filename=NULL,label=TRUE,main="Bacterial Communities",main.fontface = 2,fill=c("yellow","blue","green","red","purple"),
+                            cat.cex=0.8,cat.fontface=2,lty=1,main.pos=c(0.15,1),
+                            cat.just=list(c(0.6,1) , c(0,0) , c(0,0) , c(1,1) ,c(1,0))))
+
+#group.venn(list("Hard"=Hard,"Soft"=Soft,"Sheet"=Sheet,"Foam"=Foam,"Tile"=Tile),label=TRUE,file="bac.venn",ext="jpeg",)
 
 ```
 
